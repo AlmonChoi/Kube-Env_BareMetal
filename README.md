@@ -1,2 +1,3 @@
-# kube-lab
-Building bare metal Kubernetes development environment 
+# Kube-Env
+Building Bare-Metal Kubernetes development environment
+
