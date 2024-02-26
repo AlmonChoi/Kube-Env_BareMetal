@@ -5,7 +5,7 @@ Building Bare-Metal Kubernetes development environment
 
 Create a 3-node cluster (1 x control + 2 worker nodes) with
 - ConatinerD (CRI), 
-- [Cilium](https://docs.cilium.io/en/latest/overview/intro/){:target="_blank" rel="noopener"} (CNI, LoadBalancer, IPPool, BGP, WireGuard Transparent Encryption) 
+- <a href="https://docs.cilium.io/en/latest/overview/intro/" target="_blank">Cilium</a> (CNI, LoadBalancer, IPPool, BGP, WireGuard Transparent Encryption) 
 - Ingress-NGINX
 
 ### 1. Download the Packer code
