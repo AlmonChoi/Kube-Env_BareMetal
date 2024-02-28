@@ -13,8 +13,8 @@ git checkout
 ```
 
 ### 2. Review and update IP address, OS ISO image path and SSH authorized keys
-- Edit .hcl files inside ./pkrvars
----
+Edit .hcl files inside ./pkrvars
+```
   ip_add               = "192.168.0.110"	
   ip_mask              = "255.255.255.0"
   ip_gw                = "192.168.0.254"
@@ -24,7 +24,7 @@ git checkout
   ]
 
   iso_url  = "file://<<path>>/ubuntu-22.04.3-live-server-amd64.iso"
----
+```
 
 ### 3. Run Batch
 The batch will create 3 VMs one by one
@@ -33,18 +33,18 @@ cd packer
 build-k8s.cmd
 ```
 
-### 3. Start up control nodes and join worker nodes
+### 4. Start up control nodes and join worker nodes
 ---
 - Logon the installation user (e.g. kube-ops with 'password')
 - Open the k8s-controll.install and copy "kubeadm join k8s-control.localdomain:6443 --token ...." 
 - SSH to worker nodes and run "kubeadm join k8s-control.localdomain:6443 --token ...."
 
-### 4. Check cluster status
+### 5. Check cluster status
 '''bash
 kubectl get nodes
 ```
 
-### 5. Check Cilium status
+### 6. Check Cilium status
 '''bash
 cilium status
 ```
