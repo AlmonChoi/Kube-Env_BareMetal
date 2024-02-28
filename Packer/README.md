@@ -34,18 +34,17 @@ build-k8s.cmd
 ```
 
 ### 4. Start up control nodes and join worker nodes
----
 - Logon the installation user (e.g. kube-ops with 'password')
 - Open the k8s-controll.install and copy "kubeadm join k8s-control.localdomain:6443 --token ...." 
 - SSH to worker nodes and run "kubeadm join k8s-control.localdomain:6443 --token ...."
 
 ### 5. Check cluster status
-'''bash
+```bash
 kubectl get nodes
 ```
 
 ### 6. Check Cilium status
-'''bash
+```bash
 cilium status
 ```
 
