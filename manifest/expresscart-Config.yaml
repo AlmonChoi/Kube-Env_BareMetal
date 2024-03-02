@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-db-pv
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  #mountOptions:              # error "mount.nfs Protocol not supported"
+  # - hard
+  # - nfsvers=4.1
+  claimRef:
+    name: nfs-db-pvc          # only allow named PersistentVolumeClaim to bind
+    namespace: expresscart
+  nfs:
+    path: /volume2/docker/expressCart/mongodb
+    server: dsm.lab
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: expresscart
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-configmap
+  namespace: expresscart
+data:
+  database_url: mongodb://mongodb-service:27017/?authSource=admin
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongoexpress-login
+  namespace: expresscart
+type: Opaque
+data:
+  username: ZXhwcmVzc2NhcnQ=
+  password: ZXhwcmVzc2NhcnQ=
+
+---
+# If the application image is stored in private repo and require logon, use secret to sepcify
+# Reference : https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: registrypullsecret
+#   namespace: expresscart
+# data:
+#   .dockerconfigjson:                              #.docker/config.json | base64 -0w
+# type: kubernetes.io/dockerconfigjson
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: "expresscart-pool"
+spec:
+  cidrs:
+  - cidr: "192.168.89.0/24"
+  # serviceSelector:
+  #   matchExpressions:
+  #    - {key: role, operator: In, values: [frontend, monitor]}
+
+---
+# VyOS router GBP configuration to point to worker nodes
+#
+# $ set protocols bgp 65400 neighbor 192.168.88.111 remote-as 65400
+# $ set protocols bgp 65400 neighbor 192.168.88.112 remote-as 65400
+# $ set protocols bgp 65400 neighbor 192.168.88.111 address-family ipv4-unicast
+# $ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicast
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumBGPPeeringPolicy
+metadata:
+ name: 01-bgp-peering-policy
+spec:
+  # This defines which nodes policy applies to. The label bgp-policy=a is defined here, will have to add this label 
+  # to all of our cluster nodes before the policy will be applied to them
+  # $ kubectl label nodes k8s-worker1.localdomain bgp-policy=homelab
+  # $ kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab
+  # $ kubectl get nodes -l bgp-policy=homelab
+  nodeSelector:
+    matchLabels:
+      bgp-policy: homelab
+  virtualRouters:
+  # ASN in the well-known private ASN range (64512 – 65535). We set our ASN to 65400:
+  - localASN: 65400
+    # Cilium not to advertise the Pod Network to peers to avoid external traffic to be routed directly to pods
+    exportPodCIDR: false
+    neighbors:
+      # IP of the router
+      - peerAddress: '192.168.88.2/32'
+        peerASN: 65400
+    # which services we will expose. 
+    serviceSelector:
+      matchExpressions:
+#        - {key: somekey, operator: NotIn, values: ['never-used-value']}
+#        - {key: role, operator: In, values: [Ingress-entry]}
+        - {key: somekey, operator: NotIn, values: ['never-used-value']}         # dumpmy key for annouce all Services within cluster
+
+---
+# Namespace for Prometheus and Grafana for server monitoring
+# Deploy the Prometheus Operator via Helm chart
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prometheusstack
+
+---
+
