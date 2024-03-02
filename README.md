@@ -121,20 +121,20 @@ spec:
 ```
 - Use Prometheus UI to check the new alert rule has been added.
 - Slack will received old message which has been fired as 'send_resolved: true' set
-- Kit a expresscart pod and wait for new message
+- Kill a expresscart pod and wait for new message
 
 ## System vertification
 
 ### Application @ Client
 The user name and password are set by [expressCart](https://github.com/mrvautin/expressCart)
-http://expresscart.lab/		    <- expresscart shop 
-http://expresscart.lab/admin	<- expresscart admin   -> U: owner@test.com P: test
-http://expresscart.lab/mongo	<- mongoexpress		   -> U: expresscart P: expresscart
+- http://expresscart.lab/		<- expresscart shop 
+- http://expresscart.lab/admin	<- expresscart admin   -> U: owner@test.com P: test
+- http://expresscart.lab/mongo	<- mongoexpress		   -> U: expresscart P: expresscart
 
 ### System tools @ Client
-http://hubble.lab
-http://prometheus.lab
-http://grafana.lab		       -> U: admin P:prom-operator, or U: admin P:admin
+- http://hubble.lab
+- http://prometheus.lab
+- http://grafana.lab		    -> U: admin P:prom-operator, or U: admin P:admin
 
 ### WireGuard Pod-to-Pod encryption @ control node
 ```
@@ -146,12 +146,17 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 
 ### Hubble-observability
 
-![default_namepsace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/default_namespace.png )
-
+ExpressCart Application Namespace
 ![dexpresscart_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/expresscart_namespace.png)
 
+Kube-System Namespace
+![kube-system_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/kube-system_namespace.jpg)
+
+External-dns Namespace
 ![external-dns_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/external-dns_namespace.png)
 
+Ingress-NGINX Namespace
 ![ingress-nginx_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/ingress-nginx_namespace.png)
 
-![kub-system_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/kub-system_namespace.png)
+Default Namespace
+![default_namepsace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/default_namespace.png )
