@@ -18,8 +18,8 @@ spec:
     name: nfs-db-pvc          # only allow named PersistentVolumeClaim to bind
     namespace: expresscart
   nfs:
-    path: /volume2/docker/expressCart/mongodb
-    server: dsm.lab
+    path: /docker/expressCart/mongodb
+    server: nfs.lab
 
 ---
 apiVersion: v1
@@ -70,13 +70,13 @@ spec:
       volumes:      
         - name: docker-volume-uploads
           nfs:                                                # Direct using to NFS with using PersistentVolume and PersistentVolumeClaim
-            server: dsm.lab                                   # Worker node nfs-common required 
-            path: /volume2/docker/expressCart/uploads
+            server: nfs.lab                                   # Worker node nfs-common required 
+            path: /docker/expressCart/uploads
             readOnly: false
         - name: docker-volume-config
           nfs:
-            server: dsm.lab
-            path: /volume2/docker/expressCart/config
+            server: nfs.lab
+            path: /docker/expressCart/config
             readOnly: false
 
 ---
@@ -123,7 +123,7 @@ spec:
         - name: mongodb			
           persistentVolumeClaim:
             claimName: nfs-db-pvc	
----		
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -180,7 +180,7 @@ spec:
                name: mongoexpress-login
                key: password
 
----					
+---
 apiVersion: v1
 kind: Service
 metadata:
