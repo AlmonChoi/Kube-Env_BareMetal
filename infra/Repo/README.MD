@@ -6,9 +6,9 @@ Building Bare-Metal Kubernetes development environment with demo application usi
 ### Installation of docker-ce
 
 1. Uninstall old versions 
-``
+```
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
-``
+```
 
 2. Set up Docker's apt repository 
 ```
