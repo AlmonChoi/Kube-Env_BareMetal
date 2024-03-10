@@ -23,7 +23,7 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 ### Building Kubernetes cluster VM using Packer with VMWare workstation
 
 [Create a 3-node cluster (1 x control + 2 worker nodes)](./Packer/README.md) with
-- Kubernets cluster version 1.27 
+- [Kubernets cluster](https://kubernetes.io/docs/concepts/overview/) version 1.27 
 - [Conatinerd](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd) [(CRI)](https://kubernetes.io/docs/concepts/architecture/cri/) 
 - [Cilium](https://docs.cilium.io/en/latest/overview/intro/) (CNI, LoadBalancer, IPPool, BGP, WireGuard Transparent Encryption) 
 - [Ingress-Nginx Controller](https://kubernetes.github.io/ingress-nginx/)
@@ -32,11 +32,11 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 
 > Install different version of Kubernets required to update ['K8S-Containerd-Cilium.sh'](./Packer/files/K8S-Containerd-Cilium.sh) under packer folder
 
-> Install other version of Ingress-NGINX check (Supported Versions table)[https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table] for the comptaibility  
+> Install other version of Ingress-NGINX check [Supported Versions table](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) for the comptaibility  
 
 ## Kubernetes application deployment
 
-### 1. Deploy ExternalDNS with RBAC
+### 1. Deploy [external-dns](https://github.com/kubernetes-sigs/external-dns) with RBAC
 ```
 kubectl apply -f .\manifest\externalDNS.yml
 ```
@@ -46,7 +46,7 @@ kubectl apply -f .\manifest\externalDNS.yml
 kubectl apply -f .\manifest\expressCart-Config.yml 
 ```
 
-### 3. Create expressCart Application
+### 3. Create [expressCart](./blob/main/manifest/expresscart-Application.yaml) Application
 Create deployment plan, Pod and Services, ingress, network policy and load balancer for Hubble, Prometheus and Grfrana 
 ```
 kubectl apply -f .\manifest\expresscart-Application.yaml"
@@ -55,7 +55,7 @@ kubectl apply -f .\manifest\expresscart-Application.yaml"
 
 > The expresscart application image pointed to local docker repo. Update the image path 'repo.lab/expresscart:1.0.2' if different
 
-### 4. Deploy Prometheus and grafana
+### 4. Deploy [Prometheus](https://github.com/prometheus/prometheus) and [Grafana](https://github.com/grafana/grafana) using [Helm chart](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
@@ -64,10 +64,10 @@ helm install -n prometheus-stack --version "51.5.3"\
     prometheus prometheus-community/kube-prometheus-stack -f .\manifest\prometheus-stack-myvalues.51.5.3.yaml
 ```
 
-### 5. Update Alert Manager to send message to email and slack
+### 5. Update Alert Manager to send message to Slack
 - Create the Slack channel and incoming Webhook URL
 - Use OpenLens, goto secret, edit alertmanager-prometheus-stack-alertmanager	
-- Update the below sections for 'alertmanager.yaml' and save. Note : api_url used your Slack Webhook URL
+- Update the below sections for 'alertmanager.yaml' and save. Note : replace api_url with your Slack Webhook URL
 ```
 global:
   resolve_timeout: 1m
@@ -160,3 +160,5 @@ Ingress-NGINX Namespace
 
 Default Namespace
 ![default_namepsace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/default_namespace.png )
+
+
