@@ -1,0 +1,21 @@
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:16.4.1-ce.0
+    container_name: gitlab-ce
+    hostname: gitlab-ce
+    domainname: gitlab.lab
+    volumes:
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/data:/var/opt/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+    mem_limit: 4g
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.20
+    ports:
+      - 443/tcp
+      - 22/tcp
+networks:
+  network_macvlan:
+    name: network00
+    external: true
