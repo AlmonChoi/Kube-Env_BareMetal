@@ -1,0 +1,35 @@
+version: "3"
+services:
+  registry:
+    image: registry:2.8.3
+    container_name: registry-repo
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.21
+    ports:
+      - 443/tcp
+    volumes:
+      - ./repo/storage:/var/lib/registry:rw
+      - ./repo/config:/etc/docker:rw
+
+  registry-ui:
+    image: joxit/docker-registry-ui:latest
+    container_name: registry-ui
+    depends_on:
+      - registry
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.22
+    environment:
+      - SINGLE_REGISTRY=true
+      - REGISTRY_URL=https://repo.lab
+      - DELETE_IMAGES=true
+      - SHOW_CONTENT_DIGEST=true
+      - SHOW_CATALOG_NB_TAGS=true
+      - TAGLIST_PAGE_SIZE=100
+      - REGISTRY_SECURED=false
+      - CATALOG_ELEMENTS_LIMIT=1000
+networks:
+  network_macvlan:
+    name: network00
+    external: true
