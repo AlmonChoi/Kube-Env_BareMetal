@@ -1,0 +1,158 @@
+# Copyright VMware, Inc.
+# SPDX-License-Identifier: APACHE-2.0
+# Modified for Kube-env project
+
+version: '2'
+
+services:
+
+  registry:
+    image: docker.io/bitnami/harbor-registry:2
+    container_name: harbor-registry
+    networks: 
+      - backend
+    environment:
+      - REGISTRY_HTTP_SECRET=CHANGEME
+    volumes:
+      - ./registry_data:/storage
+      - ./config/registry/:/etc/registry/:ro
+
+  registryctl:
+    image: docker.io/bitnami/harbor-registryctl:2
+    container_name: harbor-registryctl
+    networks: 
+      - backend
+    environment:
+      - CORE_SECRET=CHANGEME
+      - JOBSERVICE_SECRET=CHANGEME
+      - REGISTRY_HTTP_SECRET=CHANGEME
+    volumes:
+      - ./registry_data:/storage
+      - ./config/registry/:/etc/registry/:ro
+      - ./config/registryctl/config.yml:/etc/registryctl/config.yml:ro
+
+  postgresql:
+    image: docker.io/bitnami/postgresql:13
+    container_name: harbor-db
+    networks: 
+      - backend
+    environment:
+      - POSTGRESQL_PASSWORD=bitnami
+      - POSTGRESQL_DATABASE=registry
+    volumes:
+      - ./postgresql_data:/bitnami/postgresql
+
+  core:
+    image: docker.io/bitnami/harbor-core:2
+    container_name: harbor-core
+    depends_on:
+      - registry
+    networks: 
+      - backend
+    environment:
+      - CORE_KEY=change-this-key
+      - _REDIS_URL_CORE=redis://harbor-redis:6379/0
+      - SYNC_REGISTRY=false
+      - CHART_CACHE_DRIVER=redis
+      - _REDIS_URL_REG=redis://harbor-redis:6379/1
+      - PORT=8080
+      - LOG_LEVEL=info
+      - EXT_ENDPOINT=http://harbor-core:8080
+      - DATABASE_TYPE=postgresql
+      - REGISTRY_CONTROLLER_URL=http://harbor-registryctl:8080
+      - POSTGRESQL_HOST=harbor-db
+      - POSTGRESQL_PORT=5432
+      - POSTGRESQL_DATABASE=registry
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=bitnami
+      - POSTGRESQL_SSLMODE=disable
+      - REGISTRY_URL=http://harbor-registry:5000
+      - TOKEN_SERVICE_URL=http://harbor-core:8080/service/token
+      - HARBOR_ADMIN_PASSWORD=admin
+      - CORE_SECRET=CHANGEME
+      - JOBSERVICE_SECRET=CHANGEME
+      - ADMIRAL_URL=
+      - CORE_URL=http://harbor-core:8080
+      - JOBSERVICE_URL=http://harbor-jobservice:8080
+      - REGISTRY_STORAGE_PROVIDER_NAME=filesystem
+      - REGISTRY_CREDENTIAL_USERNAME=harbor_registry_user
+      - REGISTRY_CREDENTIAL_PASSWORD=harbor_registry_password
+      - READ_ONLY=false
+      - RELOAD_KEY=
+    volumes:
+      - ./core_data:/data
+      - ./config/core/app.conf:/etc/core/app.conf:ro
+      - ./config/core/private_key.pem:/etc/core/private_key.pem:ro
+
+  portal:
+    image: docker.io/bitnami/harbor-portal:2
+    container_name: harbor-portal
+    networks: 
+      - backend
+    depends_on:
+      - core
+
+  jobservice:
+    image: docker.io/bitnami/harbor-jobservice:2
+    container_name: harbor-jobservice
+    networks: 
+      - backend
+    depends_on:
+      - redis
+      - core
+    environment:
+      - CORE_SECRET=CHANGEME
+      - JOBSERVICE_SECRET=CHANGEME
+      - CORE_URL=http://harbor-core:8080
+      - REGISTRY_CONTROLLER_URL=http://harbor-registryctl:8080
+      - REGISTRY_CREDENTIAL_USERNAME=harbor_registry_user
+      - REGISTRY_CREDENTIAL_PASSWORD=harbor_registry_password
+    volumes:
+      - ./jobservice_data:/var/log/jobs
+      - ./config/jobservice/config.yml:/etc/jobservice/config.yml:ro
+
+  redis:
+    image: docker.io/bitnami/redis:7.0
+    container_name: harbor-redis
+    networks: 
+      - backend
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+
+  harbor-nginx:
+    image: docker.io/bitnami/nginx:1.25
+    container_name: harbor-nginx
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.40
+      backend:
+    privileged: true
+    user: root
+    volumes:
+      - ./config/proxy/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf:ro
+    ports:
+      - 80/TCP
+    depends_on:
+      - postgresql
+      - registry
+      - core
+      - portal
+
+  trivy:
+    image: bitnami/harbor-adapter-trivy:latest
+    container_name: harbor-trivy
+    networks: 
+      - backend
+    volumes:
+      - ./trivy_data:/bitnami
+    environment:
+      - SCANNER_REDIS_URL=redis://harbor-redis:6379
+
+networks:
+  network_macvlan:
+    name: network00
+    external: true
+  backend:
+    name: harbor_network
+    driver: bridge

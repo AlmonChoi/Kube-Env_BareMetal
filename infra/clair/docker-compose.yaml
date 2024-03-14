@@ -1,0 +1,36 @@
+
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: clair-postgres
+    networks: 
+      - backend
+    volumes:
+      - ./data.2.1.8:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=""
+      - POSTGRES_HOST_AUTH_METHOD=trust
+
+  clair:
+    image: quay.io/coreos/clair:v2.1.8
+    container_name: clair-server
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.41
+      backend:
+    depends_on:
+      - database
+    links:
+      - database
+    ports:
+      - 6060/TCP
+      - 6061/TCP
+    volumes:
+      - ./config.2.1.8:/etc/clair
+networks:
+  network_macvlan:
+    name: network00
+    external: true
+  backend:
+    name: clair_network
+    driver: bridge

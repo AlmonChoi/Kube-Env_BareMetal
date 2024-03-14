@@ -1,0 +1,53 @@
+version: "3.8"
+services:
+  database:
+    image: mysql:8.1.0-oracle
+    container_name: zabbix-mysql
+    networks: 
+      - backend
+    volumes:
+      - ./mysql-conf:/etc/mysql/conf.d:rw
+      - ./mysql-db:/var/lib/mysql:rw
+  server:
+    image: zabbix/zabbix-server-mysql:alpine-latest
+    container_name: zabbix-server-mysql
+    depends_on:
+      - database
+    networks: 
+      - backend
+    volumes:
+      - ./zabbix-conf:/etc/zabbix:rw
+    environment:
+      - DB_SERVER_HOST=zabbix-mysql
+      - MYSQL_DATABASE=zabbix
+      - MYSQL_USER=zabbix
+      - MYSQL_PASSWORD=zabbix-pwd
+  frontend:
+    image: zabbix/zabbix-web-nginx-mysql:alpine-latest
+    container_name: zabbix-web-nginx
+    depends_on:
+      - database
+      - server
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.42
+      backend:
+    privileged: true
+    user: root
+    volumes:
+      - ./nginx:/etc/zabbix:rw
+    environment:
+      - DZBX_SERVER_HOST=zabbix-server-mysql
+      - DB_SERVER_HOST=zabbix-mysql
+      - MYSQL_DATABASE=zabbix
+      - MYSQL_USER=zabbix
+      - MYSQL_PASSWORD=zabbix-pwd
+
+networks:
+  network_macvlan:
+    name: network00
+    external: true
+  backend:
+    name: zabbix_network
+    driver: bridge
+

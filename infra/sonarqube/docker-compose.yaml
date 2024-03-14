@@ -1,0 +1,15 @@
+version: '2.0'
+services:
+  sonarqube:
+    restart: always
+    image: sonarqube
+    privileged: true
+    user: root
+    ports:
+      - 9000:9000
+    container_name: sonarqube
+    volumes:
+      - ./logs:/opt/sonarqube/logs
+      - ./data:/opt/sonarqube/data
+      - ./extensions:/opt/sonarqube/extensions
+

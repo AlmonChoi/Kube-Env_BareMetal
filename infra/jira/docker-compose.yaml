@@ -1,0 +1,15 @@
+services:
+  jira:
+    image: atlassian/jira-software:latest
+    container_name: jira-software
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.25
+    ports:
+      - 8080/tcp
+    volumes:
+      - ./application-data:/var/atlassian/application-data/jira:rw
+networks:
+  network_macvlan:
+    name: network00
+    external: true
