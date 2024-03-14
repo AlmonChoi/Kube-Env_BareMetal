@@ -1,0 +1,59 @@
+TESTED = true
+
+pipeline{
+    agent  { label "NodeJS-build-node" }
+    stages {
+        stage('Preparation'){
+            parallel {
+                stage("Setup empty mongoDB for build & test") {
+                    steps {
+                        sh "docker run -p 127.0.0.1:27017:27017 -d --name mongo -d mongo:4.4"
+                        sh "echo 127.0.0.1 expresscart-db >> /etc/hosts"
+                    }
+                }
+                stage("Install required components for testing"){
+                    steps {
+                        sh "apt update"
+                        sh "apt install -y --assume-yes make gcc g++ npm bash nodejs yarn"
+                    }
+                } 
+            }
+        }
+        stage("Testing - appliction"){
+            steps {
+                sh "rm -rf /opt/expressCart"
+                sh "mkdir -p /opt/expressCart"
+                sh "cp -r ${WORKSPACE}/app/src/. /opt/expressCart"
+                sh "cd /opt/expressCart && pwd && npm install"
+                sh "cd /opt/expressCart && pwd && npm run testdata"
+                sh "cd /opt/expressCart && pwd && npm run test"
+            }
+        }
+        stage("build application"){
+            when {
+                expression {
+                    TESTED == true 
+                }
+            }
+            steps{
+                sh "cd ${WORKSPACE}/app"
+                sh "docker-compose build"
+                sh "docker tag expresscart_main_expresscart1:latest repo.lab/expresscart:1.0.2"
+            }
+        }
+        stage("upload image"){
+            steps{
+                sh "docker push repo.lab/expresscart:1.0.2"
+            }
+
+        }
+    }
+
+    post{
+        always{
+            sh "docker stop mongo"
+            sh "docker rm mongo"
+        }
+    }
+}
+
