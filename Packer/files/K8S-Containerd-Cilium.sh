@@ -108,11 +108,6 @@ if [ $HOSTNAME == "k8s-control.localdomain" ]; then
    
     echo "--> instsall Cilium : replace kubeproxy and enable ingress controller"
     wget https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
-    wget http://192.168.0.254/expresscart_latest.tar
-    wget http://192.168.0.254/loadimage.sh
-    wget http://192.168.0.254/lsimage.sh
-    chmod +x ./loadimage.sh
-    chmod +x ./lsimage.sh
     sudo tar xzvfC cilium-linux-amd64.tar.gz /usr/local/bin
     # cilium install --set kubeProxyReplacement=true  --set ingressController.enabled=true  --set ingressController.loadbalancerMode=dedicated 
     # cilium install --set kubeProxyReplacement=true  --set ingressController.enabled=true  --set ingressController.loadbalancerMode=shared
