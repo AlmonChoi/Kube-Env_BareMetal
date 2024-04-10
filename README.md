@@ -162,3 +162,14 @@ Default Namespace
 ![default_namepsace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/default_namespace.png )
 
 
+## [CI/CD pipeline](./pipeline)
+
+- Application project saved into local GitLab source code repository 
+
+- GitLab CI/CD Runner scan code when project committed using SonarQube
+
+- Jenkins scan GitLab project. Jenkins node running application testing and container image build
+
+- Container image stored into local Docker Register
+
+
