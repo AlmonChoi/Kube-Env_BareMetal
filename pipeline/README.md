@@ -1,6 +1,6 @@
-ExpressCart docker image build pipeline
+# ExpressCart docker image build pipeline
 
-# Prepreation
+## Prepreation
 - GitLab
 - Sonar-Qube
 - Jenkins
