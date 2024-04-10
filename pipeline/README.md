@@ -1,10 +1,10 @@
 # ExpressCart docker image build pipeline
 
 ## Prepreation
-- GitLab
-- Sonar-Qube
-- Jenkins
-- Docker Register & UI 
+- [GitLab](../infra/GitLab)
+- [Sonar-Qube](../infra/sonarqube)
+- [Jenkins](../infra/jenkins)
+- [Docker Register & UI](../infra/Repo)
 
 
 ## GitLab
