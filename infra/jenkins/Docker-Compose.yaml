@@ -1,0 +1,25 @@
+version: '2.0'
+services:
+  jenkins:
+#    restart: always
+    image: jenkins/jenkins
+    container_name: jenkins
+    privileged: true
+    user: root
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.23
+    dns: 192.168.0.1
+    ports:
+      - 80/TCP
+      - 50000/TCP
+    volumes:
+      - ./home:/var/jenkins_home
+      - ./certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+      - ./hosts/hosts:/etc/hosts
+    environment:
+      - JENKINS_OPTS="--httpPort=80"
+networks:
+  network_macvlan:
+    name: network00
+    external: true
