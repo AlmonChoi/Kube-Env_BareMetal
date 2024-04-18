@@ -147,19 +147,19 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 ### Hubble-observability
 
 ExpressCart Application Namespace
-![dexpresscart_namespace](./hubble-observability/expresscart_namespace.png)
+![dexpresscart_namespace](./hubble-observability/expresscart_namespace.png | width=50)
 
 Kube-System Namespace
-![kube-system_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/kube-system_namespace.jpg)
+![kube-system_namespace](./hubble-observability/kube-system_namespace.jpg)
 
 External-dns Namespace
-![external-dns_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/external-dns_namespace.png)
+![external-dns_namespace](./hubble-observability/external-dns_namespace.png)
 
 Ingress-NGINX Namespace
-![ingress-nginx_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/ingress-nginx_namespace.png)
+![ingress-nginx_namespace](./hubble-observability/ingress-nginx_namespace.png)
 
 Default Namespace
-![default_namepsace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/default_namespace.png )
+![default_namepsace](./hubble-observability/default_namespace.png )
 
 
 ## [CI/CD pipeline](./pipeline)
