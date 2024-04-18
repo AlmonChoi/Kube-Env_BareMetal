@@ -147,7 +147,7 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 ### Hubble-observability
 
 ExpressCart Application Namespace
-![dexpresscart_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/expresscart_namespace.png)
+![dexpresscart_namespace](./hubble-observability/expresscart_namespace.png)
 
 Kube-System Namespace
 ![kube-system_namespace](https://raw.githubusercontent.com/AlmonChoi/Kube-Env_BareMetal/main/hubble-observability/kube-system_namespace.jpg)
