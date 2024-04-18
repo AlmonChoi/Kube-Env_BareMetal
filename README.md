@@ -153,6 +153,7 @@ Kube-System Namespace
 ![kube-system_namespace](./hubble-observability/kube-system_namespace.jpg)
 
 External-dns Namespace
+
 <img src="./hubble-observability/external-dns_namespace.png" width="500">
 
 Ingress-NGINX Namespace
