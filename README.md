@@ -148,13 +148,12 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 
 ExpressCart Application Namespace
 ![dexpresscart_namespace](./hubble-observability/expresscart_namespace.png)
-<img src="./hubble-observability/expresscart_namespace.png" width="200">
 
 Kube-System Namespace
 ![kube-system_namespace](./hubble-observability/kube-system_namespace.jpg)
 
 External-dns Namespace
-![external-dns_namespace](./hubble-observability/external-dns_namespace.png)
+<img src="./hubble-observability/external-dns_namespace.png" width="500">
 
 Ingress-NGINX Namespace
 ![ingress-nginx_namespace](./hubble-observability/ingress-nginx_namespace.png)
