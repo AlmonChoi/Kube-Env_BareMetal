@@ -56,7 +56,7 @@ nginx['ssl_certificate_key'] = "/etc/gitlab/trusted-certs/server.lab.key"
 sudo docker exec -it gitlab-ce cat /etc/gitlab/initial_root_password
 ```
 
-### Login and customize git clon URL
+### Login and customize git clone URL
 - Logon as root
 - Goto Configure GitLab
 - Goto Settings -> General -> Visibility and access controls -> Expand
