@@ -34,19 +34,44 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 
 > Install other version of Ingress-NGINX check [Supported Versions table](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) for the comptaibility  
 
-## Kubernetes application deployment
+## Complete Kubernetes Cluster setup
 
-### 1. Deploy [external-dns](https://github.com/kubernetes-sigs/external-dns) with RBAC
+### 1. Join nodes to Kubernetes 
+
+- Check the join string from 'k8s-controll.install' file in control plan node 
+- Join worker node to control plan
+
+Example:
+```
+kubeadm join k8s-control.localdomain:6443 --token xxxxx \
+        --discovery-token-ca-cert-hash sha256:xxxx
+
+```
+- Check the nodes are ready
+```
+kubectl get nodes
+```
+
+### 2. Update node label for BGP policy
+```
+    kubectl label nodes k8s-control.localdomain bgp-policy=homelab
+    kubectl label nodes k8s-worker1.localdomain bgp-policy=homelab		
+    kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab		
+```
+
+### 3. Deploy [external-dns](https://github.com/kubernetes-sigs/external-dns) with RBAC
 ```
 kubectl apply -f .\manifest\externalDNS.yml
 ```
 
-### 2. Deploy namepsace, configMap, Secret, IPPool, setup BGP peering
+## Kubernetes application deployment
+
+### 1. Deploy namepsace, configMap, Secret, IPPool, setup BGP peering
 ``` 
 kubectl apply -f .\manifest\expressCart-Config.yml 
 ```
 
-### 3. Create [expressCart](./blob/main/manifest/expresscart-Application.yaml) Application
+### 2. Create [expressCart](./blob/main/manifest/expresscart-Application.yaml) Application
 Create deployment plan, Pod and Services, ingress, network policy and load balancer for Hubble, Prometheus and Grfrana 
 ```
 kubectl apply -f .\manifest\expresscart-Application.yaml"
@@ -55,7 +80,10 @@ kubectl apply -f .\manifest\expresscart-Application.yaml"
 
 > The expresscart application image pointed to local docker repo. Update the image path 'repo.lab/expresscart:1.0.2' if different
 
-### 4. Deploy [Prometheus](https://github.com/prometheus/prometheus) and [Grafana](https://github.com/grafana/grafana) using [Helm chart](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
+
+## Deploy [Prometheus](https://github.com/prometheus/prometheus) and [Grafana](https://github.com/grafana/grafana) 
+
+### 1. Deploy using [Helm chart](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
@@ -64,7 +92,7 @@ helm install -n prometheus-stack --version "51.5.3"\
     prometheus prometheus-community/kube-prometheus-stack -f .\manifest\prometheus-stack-myvalues.51.5.3.yaml
 ```
 
-### 5. Update Alert Manager to send message to Slack
+### 2. Update Alert Manager to send message to Slack
 - Create the Slack channel and incoming Webhook URL
 - Use OpenLens, goto secret, edit alertmanager-prometheus-stack-alertmanager	
 - Update the below sections for 'alertmanager.yaml' and save. Note : replace api_url with your Slack Webhook URL
@@ -96,7 +124,7 @@ kubectl logs -n prometheus-stack pod/alertmanager-prometheus-stack-alertmanager-
 kubectl exec -n prometheus-stack pod/alertmanager-prometheus-stack-alertmanager-0 \
           -- cat /etc/alertmanager/config_out/alertmanager.env.yaml
 ```
-### 6. Update alert rules 
+### 3. Update alert rules 
 > **Note**
 
 >  Cannot directly edit the configMap object as it is managed by Prometheus Operator
@@ -147,20 +175,20 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 ### Hubble-observability
 
 ExpressCart Application Namespace
-![dexpresscart_namespace](./hubble-observability/expresscart_namespace.png)
+![dexpresscart_namespace](./screen/hubble-observability_expresscart_namespace.png)
 
 Kube-System Namespace
-![kube-system_namespace](./hubble-observability/kube-system_namespace.jpg)
+![kube-system_namespace](./screen/hubble-observability_kube-system_namespace.jpg)
 
 External-dns Namespace
 
-<img src="./hubble-observability/external-dns_namespace.png" width="500">
+<img src="./screen/hubble-observability_external-dns_namespace.png" width="500">
 
 Ingress-NGINX Namespace
-![ingress-nginx_namespace](./hubble-observability/ingress-nginx_namespace.png)
+![ingress-nginx_namespace](./screen/hubble-observability_ingress-nginx_namespace.png)
 
 Default Namespace
-![default_namepsace](./hubble-observability/default_namespace.png )
+![default_namepsace](./screen/hubble-observability_default_namespace.png )
 
 
 ## [CI/CD pipeline](./pipeline)
