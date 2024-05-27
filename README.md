@@ -36,12 +36,12 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 
 ## Complete Kubernetes Cluster setup
 
-### 1. Join nodes to Kubernetes 
+### 1. Join nodes to Kubernetes Cluster
 
-- Check the join string from 'k8s-controll.install' file in control plan node 
-- Join worker node to control plan
+- Check the join string from "k8s-controll.install" file in control plan node 
+- Join worker nodes to control plan
 
-Example:
+Example: (Run at worker nodes)
 ```
 kubeadm join k8s-control.localdomain:6443 --token xxxxx \
         --discovery-token-ca-cert-hash sha256:xxxx
@@ -54,9 +54,9 @@ kubectl get nodes
 
 ### 2. Update node label for BGP policy
 ```
-    kubectl label nodes k8s-control.localdomain bgp-policy=homelab
-    kubectl label nodes k8s-worker1.localdomain bgp-policy=homelab		
-    kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab		
+kubectl label nodes k8s-control.localdomain bgp-policy=homelab
+kubectl label nodes k8s-worker1.localdomain bgp-policy=homelab		
+kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab		
 ```
 
 ### 3. Deploy [external-dns](https://github.com/kubernetes-sigs/external-dns) with RBAC
