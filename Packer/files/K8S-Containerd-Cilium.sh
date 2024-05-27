@@ -109,13 +109,30 @@ if [ $HOSTNAME == "k8s-control.localdomain" ]; then
     echo "--> instsall Cilium : replace kubeproxy and enable ingress controller"
     wget https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
     sudo tar xzvfC cilium-linux-amd64.tar.gz /usr/local/bin
-    # cilium install --set kubeProxyReplacement=true  --set ingressController.enabled=true  --set ingressController.loadbalancerMode=dedicated 
-    # cilium install --set kubeProxyReplacement=true  --set ingressController.enabled=true  --set ingressController.loadbalancerMode=shared
-    # cilium install --set kubeProxyReplacement=true  --set ingressController.enabled=true  --set ingressController.loadbalancerMode=shared
-    # cilium version --client | tee -a k8s-controll.install 
-    # echo "--> enable hubble"
-    # cilium hubble enable --ui | tee -a k8s-controll.install
-    # cilium status | tee -a k8s-controll.install
+
+    mkdir -p ~/cilium
+    cd ~/cilium
+    git init
+    git remote add origin https://github.com/cilium/cilium.git
+    git sparse-checkout init
+    git sparse-checkout set install/kubernetes/cilium
+    git pull origin main
+
+    # Use envoy traffic management feature without Ingress support
+    cilium install --chart-directory ~/cilium/install/kubernetes/cilium \
+           --namespace kube-system \
+           --set kubeProxyReplacement=true \
+           --set-string extraConfig.enable-envoy-config=true \
+           --set loadBalancer.l7.backend=envoy \
+           | tee -a k8s-controll.install 
+    cilium config set kube-proxy-replacement true
+
+    cilium version --client | tee -a k8s-controll.install 
+    
+    echo "--> enable hubble"
+    cilium hubble enable --ui | tee -a k8s-controll.install
+    cilium status | tee -a k8s-controll.install
+
     kubectl get nodes | tee -a k8s-controll.install 
     kubectl get all | tee -a k8s-controll.install
 
