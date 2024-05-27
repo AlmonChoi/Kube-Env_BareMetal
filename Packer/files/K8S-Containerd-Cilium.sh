@@ -106,6 +106,27 @@ if [ $HOSTNAME == "k8s-control.localdomain" ]; then
     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
    
+    echo "-> install helm and helmctl"
+    curl -o /tmp/helm.tar.gz -LO https://get.helm.sh/helm-v3.10.1-linux-amd64.tar.gz
+    tar -C /tmp/ -zxvf /tmp/helm.tar.gz
+    sudo mv /tmp/linux-amd64/helm /usr/local/bin/helm
+    sudo chmod +x /usr/local/bin/helm
+
+    echo "-> prepare ingress-NGINX yaml file"
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    CHART_VERSION="4.8.0"
+    APP_VERSION="1.9.0"
+
+    helm template ingress-nginx ingress-nginx \
+      --repo https://kubernetes.github.io/ingress-nginx \
+      --version ${CHART_VERSION} \
+      --namespace ingress-nginx \
+      > ./nginx-ingress.${APP_VERSION}.yaml
+
+    echo "-> Install ingress-nginx"
+    kubectl create namespace ingress-nginx
+    kubectl apply -f ./nginx-ingress.${APP_VERSION}.yaml
+
     echo "--> instsall Cilium : replace kubeproxy and enable ingress controller"
     wget https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
     sudo tar xzvfC cilium-linux-amd64.tar.gz /usr/local/bin
@@ -126,11 +147,31 @@ if [ $HOSTNAME == "k8s-control.localdomain" ]; then
            --set loadBalancer.l7.backend=envoy \
            | tee -a k8s-controll.install 
     cilium config set kube-proxy-replacement true
-
+    cilium status --wait
     cilium version --client | tee -a k8s-controll.install 
+
+    echo "--> enable WireGuard Transparent Encryption"
+    cilium config set encryption.enabled true
+    cilium config set encryption.type wireguard
+    cilium config set enable-wireguard true
     
-    echo "--> enable hubble"
+    echo "--> enable BGP annoucement. Repeat the label for each node joined to the cluster"
+    cilium config set l7Proxy true
+    cilium config set enable-bgp-control-plane true
+    cilium config set bgp.announce.loadbalancerIP true
+
+    echo "--> enable Hubble in Cilium"
     cilium hubble enable --ui | tee -a k8s-controll.install
+
+    echo "--> instsall Hubble CLI"
+    HUBBLE_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/hubble/master/stable.txt)
+    HUBBLE_ARCH=amd64
+    if [ "$(uname -m)" = "aarch64" ]; then HUBBLE_ARCH=arm64; fi
+    curl -L --fail --remote-name-all https://github.com/cilium/hubble/releases/download/$HUBBLE_VERSION/hubble-linux-${HUBBLE_ARCH}.tar.gz{,.sha256sum}
+    sha256sum --check hubble-linux-${HUBBLE_ARCH}.tar.gz.sha256sum
+    sudo tar xzvfC hubble-linux-${HUBBLE_ARCH}.tar.gz /usr/local/bin
+    rm hubble-linux-${HUBBLE_ARCH}.tar.gz{,.sha256sum}
+
     cilium status | tee -a k8s-controll.install
 
     kubectl get nodes | tee -a k8s-controll.install 
