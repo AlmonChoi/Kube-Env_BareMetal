@@ -30,7 +30,7 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 
 > **Note**
 
-> Install different version of Kubernets required to update ['K8S-Containerd-Cilium.sh'](./Packer/files/K8S-Containerd-Cilium.sh) under packer folder
+> Install different version of Kubernets required to update [`K8S-Containerd-Cilium.sh`](./Packer/files/K8S-Containerd-Cilium.sh) under packer folder
 
 > Install other version of Ingress-NGINX check [Supported Versions table](https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table) for the comptaibility  
 
@@ -78,7 +78,7 @@ kubectl apply -f .\manifest\expresscart-Application.yaml"
 ```
 > **Note**
 
-> The expresscart application image pointed to local docker repo. Update the image path 'repo.lab/expresscart:1.0.2' if different
+> The expresscart application image pointed to local docker repo. Update the image path `repo.lab/expresscart:1.0.2` if different
 
 
 ## Deploy [Prometheus](https://github.com/prometheus/prometheus) and [Grafana](https://github.com/grafana/grafana) 
@@ -95,7 +95,7 @@ helm install -n prometheus-stack --version "51.5.3"\
 ### 2. Update Alert Manager to send message to Slack
 - Create the Slack channel and incoming Webhook URL
 - Use OpenLens, goto secret, edit alertmanager-prometheus-stack-alertmanager	
-- Update the below sections for 'alertmanager.yaml' and save. Note : replace api_url with your Slack Webhook URL
+- Update the below sections for `alertmanager.yaml` and save. Note : replace api_url with your Slack Webhook URL
 ```
 global:
   resolve_timeout: 1m
@@ -128,8 +128,8 @@ kubectl exec -n prometheus-stack pod/alertmanager-prometheus-stack-alertmanager-
 > **Note**
 
 >  Cannot directly edit the configMap object as it is managed by Prometheus Operator
-- Use OpenLens to edit the rules under 'CRD/monitoring.coreos.com/PrometheusRule/prometheus-stack-alertmanager.rules'
-- Find 'name: alertmanager.rules'. Under rules, add or update the rules (the following is an example), then save
+- Use OpenLens to edit the rules under `CRD/monitoring.coreos.com/PrometheusRule/prometheus-stack-alertmanager.rules`
+- Find `name: alertmanager.rules`. Under rules, add or update the rules (the following is an example), then save
 ```
 spec:
   groups:
@@ -148,7 +148,7 @@ spec:
 ---------------
 ```
 - Use Prometheus UI to check the new alert rule has been added.
-- Slack will received old message which has been fired as 'send_resolved: true' set
+- Slack will received old message which has been fired as `send_resolved: true` set
 - Kill a expresscart pod and wait for new message
 
 ## System vertification

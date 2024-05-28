@@ -11,9 +11,9 @@
 
 - Preapre [.gitlab-ci.yml](./.gitlab-ci.yml) - GitLab CI/CD and save to the Git Repo root folder
 
-- Prepare ['sonar-project.properties'](./sonar-project.properties) and save to the Git Repo root folder
+- Prepare [`sonar-project.properties`](./sonar-project.properties) and save to the Git Repo root folder
 
-- Prepare ['Jenkinsfile'](./Jenkinsfile) and save to the Git Repo root folder
+- Prepare [`Jenkinsfile`](./Jenkinsfile) and save to the Git Repo root folder
 
 - [Create Gitlab Runners](https://docs.gitlab.com/ee/tutorials/create_register_first_runner/index.html#create-and-register-a-project-runner)
 ![Runner](../screen/gitlab_create_runners.jpg)
