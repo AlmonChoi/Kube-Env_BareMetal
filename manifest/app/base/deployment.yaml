@@ -1,0 +1,101 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expresscart
+  namespace: expresscart
+  labels:
+    app: expresscart
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: expresscart
+  template:
+    metadata:
+      labels:
+        app: expresscart
+        role: frontend
+    spec:
+      # Node.js (Express, MongoDB) application https://github.com/mrvautin/expressCart. Conatienr image builded and pre-imported using ctr command
+      containers:
+      - name: expresscart
+        image: repo.lab/expresscart:1.0.1
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: docker-volume-uploads
+            mountPath: /opt/expressCart/public/uploads
+          - name: docker-volume-config
+            mountPath: /opt/expressCart/config
+        ports:
+        - containerPort: 1111
+      volumes:      
+        - name: docker-volume-uploads
+          nfs:                                                # Direct using NFS without PersistentVolume and PersistentVolumeClaim
+            server: dsm.lab                                   # Worker node nfs-common package required 
+            path: /volume2/docker/expressCart/uploads
+            readOnly: false
+        - name: docker-volume-config
+          nfs:
+            server: dsm.lab
+            path: /volume2/docker/expressCart/config
+            readOnly: false
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expresscart-service
+  namespace: expresscart
+spec:
+  selector:
+    app: expresscart
+  ports:
+    - protocol: TCP
+      port: 1111
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  namespace: expresscart
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        role: backend
+    spec:
+      containers:
+      - name: mongodb
+        image: docker.io/library/mongo:4.4
+        volumeMounts:
+        - name: mongodb
+          mountPath: "/data/db"
+        ports:
+        - containerPort: 27017
+      volumes:				
+        - name: mongodb			
+          persistentVolumeClaim:				# Using NFS via PersistentVolume and PersistentVolumeClaim
+            claimName: nfs-db-pvc	
+---		
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  namespace: expresscart
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+

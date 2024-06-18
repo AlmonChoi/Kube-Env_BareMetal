@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-db-pv
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  #mountOptions:              # error "mount.nfs Protocol not supported"
+  # - hard
+  # - nfsvers=4.1
+  claimRef:
+    name: nfs-db-pvc          # only allow named PersistentVolumeClaim to bind
+    namespace: expresscart
+  nfs:
+    path: /volume2/docker/expressCart/mongodb
+    server: dsm.lab
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-db-pvc
+  namespace: expresscart
+spec:
+  storageClassName: nfs                 # Empty string must be explicitly set otherwise default StorageClass will be set
+  volumeName: nfs-db-pv                 # bind to fixed PersistentVolume name
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi

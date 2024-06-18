@@ -1,0 +1,30 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernets.io/rewrite-target: /$2
+    external-dns.alpha.kubernetes.io/hostname: expresscart.lab
+  name: expresscart-ingress
+  namespace: expresscart
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: expresscart.lab
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: expresscart-service
+            port:
+              number: 1111
+      - path: /mongo(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: mongo-express-service
+            port:
+              number: 8081
