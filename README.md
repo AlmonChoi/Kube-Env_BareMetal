@@ -69,7 +69,7 @@ kubectl apply -f .\manifest\externalDNS.yml
 kubectl apply -f .\manifest\platformConfig.yaml
 ```
 
-## Kubernetes Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
+## Application Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
 
 ### Manual deploy [expressCart](./blob/main/manifest/expresscart-Application.yaml) application in `Development` mode 
 ``` 
@@ -156,13 +156,13 @@ spec:
 ### Application @ Client
 The user name and password are set by [expressCart](https://github.com/mrvautin/expressCart)
 - http://expresscart.lab/		
-<img src="./screen/expresscart-home.jpg" width="700">
+<img src="./screen/expresscart-home.jpg" width="900">
 
 - http://expresscart.lab/admin	<- expresscart admin   -> U: owner@test.com P: test
-<img src="./screen/expresscart-admin.jpg" width="700">
+<img src="./screen/expresscart-admin.jpg" width="900">
 
 - http://expresscart.lab/mongo	<- mongoexpress		   -> U: admin P: admin
-<img src="./screen/mongo-express.jpg" width="700">
+<img src="./screen/mongo-express.jpg" width="900">
 
 ### System tools @ Client
 - http://hubble.lab
@@ -180,19 +180,19 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 ### Hubble-observability
 
 ExpressCart Application Namespace
-<img src="./screen/hubble-observability_expresscart_namespace.jpg" width="700">
+<img src="./screen/hubble-observability_expresscart_namespace.jpg" width="800">
 
 Kube-System Namespace
-<img src="./screen/hubble-observability_kube-system_namespace.jpg" width="700">
+<img src="./screen/hubble-observability_kube-system_namespace.jpg" width="800">
 
 External-dns Namespace
-<img src="./screen/hubble-observability_external-dns_namespace.png" width="400">
+<img src="./screen/hubble-observability_external-dns_namespace.png" width="500">
 
 Ingress-NGINX Namespace
-<img src="./screen/hubble-observability_ingress-nginx_namespace.png" width="700">
+<img src="./screen/hubble-observability_ingress-nginx_namespace.png" width="800">
 
 Default Namespace
-<img src="./screen/hubble-observability_default_namespace.png" width="700">
+<img src="./screen/hubble-observability_default_namespace.png" width="800">
 
 
 ## [CI/CD pipeline](./pipeline)
