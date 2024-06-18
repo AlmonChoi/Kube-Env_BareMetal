@@ -1,0 +1,157 @@
+---
+# Seteup external IP address pool
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: "expresscart-pool"
+spec:
+  cidrs:
+  - cidr: "192.168.89.0/24"
+  # serviceSelector:
+  #   matchExpressions:
+  #    - {key: role, operator: In, values: [frontend, monitor]}
+
+---
+# Setting BGP with VyOS router 
+#
+# Before running this configuration, setting protocol at VyOS router first
+# $ set protocols bgp 65400 neighbor 192.168.88.111 remote-as 65400
+# $ set protocols bgp 65400 neighbor 192.168.88.112 remote-as 65400
+# $ set protocols bgp 65400 neighbor 192.168.88.111 address-family ipv4-unicast
+# $ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicast
+
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumBGPPeeringPolicy
+metadata:
+ name: 01-bgp-peering-policy
+spec:
+  # This defines which nodes policy applies to. The label bgp-policy=a is defined here, will have to add this label 
+  # to all of our cluster nodes before the policy will be applied to them
+  # $ kubectl label nodes k8s-worker1.localdomain bgp-policy=homelab
+  # $ kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab
+  # $ kubectl get nodes -l bgp-policy=homelab
+  nodeSelector:
+    matchLabels:
+      bgp-policy: homelab
+  virtualRouters:
+  # ASN in the well-known private ASN range (64512 – 65535). We set our ASN to 65400:
+  - localASN: 65400
+    # Cilium not to advertise the Pod Network to peers to avoid external traffic to be routed directly to pods
+    exportPodCIDR: false
+    neighbors:
+      # IP of the router
+      - peerAddress: '192.168.88.2/32'
+        peerASN: 65400
+    # which services we will expose. 
+    serviceSelector:
+      matchExpressions:
+#        - {key: somekey, operator: NotIn, values: ['never-used-value']}
+#        - {key: role, operator: In, values: [Ingress-entry]}
+        - {key: somekey, operator: NotIn, values: ['never-used-value']}         # dumpmy key for annouce all Services within cluster
+
+---
+# Network service for mapping to Cilium Hubble UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: hubble-ui-ext
+  labels:
+       role: monitor
+  namespace: kube-system
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: hubble.lab
+spec:
+  loadBalancerIP: 192.168.89.100
+  type: LoadBalancer
+  selector:
+    k8s-app: hubble-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8081
+
+---
+# Network service for mapping to Grafana UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-grafana-ext
+  labels:
+       role: monitor
+  namespace: prometheus-stack
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: grafana.lab
+spec:
+  loadBalancerIP: 192.168.89.101
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: grafana
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+
+---
+# Network service for mapping to Prometheus UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-prometheus-ext
+  labels:
+       role: monitor
+  namespace: prometheus-stack
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: prometheus.lab
+spec:
+  loadBalancerIP: 192.168.89.102
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: prometheus
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9090
+
+---
+# Network service for mapping to Prometheus AlertManager UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-alertmanager-ext
+  labels:
+       role: monitor
+  namespace: prometheus-stack
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: alertmanager.lab
+spec:
+  loadBalancerIP: 192.168.89.103
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: alertmanager
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9093
+
+---
+# Network service for mapping to ArgoCD UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: argocd-ext
+  labels:
+       role: monitor
+  namespace: argocd
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: argocd.lab
+spec:
+  loadBalancerIP: 192.168.89.104
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: argocd-server
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 8080
+
+---
