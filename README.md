@@ -52,7 +52,7 @@ kubeadm join k8s-control.localdomain:6443 --token xxxxx \
 kubectl get nodes
 ```
 
-### 2. Update node label for BGP policy
+### 2. Label worker nodes for BGP policy
 ```
 kubectl label nodes k8s-control.localdomain bgp-policy=homelab
 kubectl label nodes k8s-worker1.localdomain bgp-policy=homelab		
@@ -64,21 +64,21 @@ kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab
 kubectl apply -f .\manifest\externalDNS.yml
 ```
 
-## Kubernetes application deployment
+### 4. Deploy IPPool, setup BGP peering and Ingress for management software
+```
+kubectl apply -f .\manifest\platformConfig.yaml
+```
 
-### 1. Deploy namepsace, configMap, Secret, IPPool, setup BGP peering
+## Kubernetes Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
+
+### Manual deploy [expressCart](./blob/main/manifest/expresscart-Application.yaml) application in `Development` mode 
 ``` 
-kubectl apply -f .\manifest\expressCart-Config.yml 
+kubectl apply -k .\manifest\app\overlays\development
 ```
 
-### 2. Create [expressCart](./blob/main/manifest/expresscart-Application.yaml) Application
-Create deployment plan, Pod and Services, ingress, network policy and load balancer for Hubble, Prometheus and Grfrana 
-```
-kubectl apply -f .\manifest\expresscart-Application.yaml"
-```
 > **Note**
 
-> The expresscart application image pointed to local docker repo. Update the image path `repo.lab/expresscart:1.0.2` if different
+> The expresscart application image pointed to local docker repo. Update the image path `repo.lab/expresscart` if the image stored in different location
 
 
 ## Deploy [Prometheus](https://github.com/prometheus/prometheus) and [Grafana](https://github.com/grafana/grafana) 
@@ -155,9 +155,9 @@ spec:
 
 ### Application @ Client
 The user name and password are set by [expressCart](https://github.com/mrvautin/expressCart)
-- http://expresscart.lab/		<- expresscart shop 
+- http://expresscart.lab/		<- expresscart shop
 - http://expresscart.lab/admin	<- expresscart admin   -> U: owner@test.com P: test
-- http://expresscart.lab/mongo	<- mongoexpress		   -> U: expresscart P: expresscart
+- http://expresscart.lab/mongo	<- mongoexpress		   -> U: admin P: admin
 
 ### System tools @ Client
 - http://hubble.lab
@@ -200,5 +200,8 @@ Default Namespace
 - Jenkins scan GitLab project. Jenkins node running application testing and container image build
 
 - Container image stored into local Docker Register
+
+- ArgoCD deploy application manifest stored in GitLab source code repository 
+
 
 
