@@ -155,9 +155,14 @@ spec:
 
 ### Application @ Client
 The user name and password are set by [expressCart](https://github.com/mrvautin/expressCart)
-- http://expresscart.lab/		<- expresscart shop
+- http://expresscart.lab/		
+<img src="./screen/expresscart-home.jpg" width="700">
+
 - http://expresscart.lab/admin	<- expresscart admin   -> U: owner@test.com P: test
+<img src="./screen/expresscart-admin.jpg" width="700">
+
 - http://expresscart.lab/mongo	<- mongoexpress		   -> U: admin P: admin
+<img src="./screen/mongo-express.jpg" width="700">
 
 ### System tools @ Client
 - http://hubble.lab
@@ -175,20 +180,19 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 ### Hubble-observability
 
 ExpressCart Application Namespace
-![dexpresscart_namespace](./screen/hubble-observability_expresscart_namespace.png)
+<img src="./screen/hubble-observability_expresscart_namespace.jpg" width="700">
 
 Kube-System Namespace
-![kube-system_namespace](./screen/hubble-observability_kube-system_namespace.jpg)
+<img src="./screen/hubble-observability_kube-system_namespace.jpg" width="700">
 
 External-dns Namespace
-
-<img src="./screen/hubble-observability_external-dns_namespace.png" width="500">
+<img src="./screen/hubble-observability_external-dns_namespace.png" width="400">
 
 Ingress-NGINX Namespace
-![ingress-nginx_namespace](./screen/hubble-observability_ingress-nginx_namespace.png)
+<img src="./screen/hubble-observability_ingress-nginx_namespace.png" width="700">
 
 Default Namespace
-![default_namepsace](./screen/hubble-observability_default_namespace.png )
+<img src="./screen/hubble-observability_default_namespace.png" width="700">
 
 
 ## [CI/CD pipeline](./pipeline)
