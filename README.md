@@ -45,8 +45,8 @@ Example: (Run at worker nodes)
 ```
 kubeadm join k8s-control.localdomain:6443 --token xxxxx \
         --discovery-token-ca-cert-hash sha256:xxxx
-
 ```
+
 - Check the nodes are ready
 ```
 kubectl get nodes
@@ -63,10 +63,39 @@ kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab
 ```
 kubectl apply -f .\manifest\externalDNS.yml
 ```
+> **Note**
 
-### 4. Deploy IPPool, setup BGP peering and Ingress for management software
+> This YAML file is customized with setting of local DNS server based on [RFC2136](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/rfc2136.md). Refer to [Tutorials](https://github.com/kubernetes-sigs/external-dns/tree/master/docs/tutorials) file for different DNS server provider. 
+
+
+### 4. Deploy IPPool, setup BGP peering, Namespaces and Ingress of management software
 ```
 kubectl apply -f .\manifest\platformConfig.yaml
+```
+
+### 5. Deploy Argo CD and setup 
+- Install Argo CD via YAML. `argocd` namespace has been created in step 4. manageent manifest
+```
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+- Install Argo CD CLI 
+```
+VERSION=$(curl -L -s https://raw.githubusercontent.com/argoproj/argo-cd/stable/VERSION)
+curl -sSL -o ./argocd/argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v$VERSION/argocd-linux-amd64
+sudo install -m 555 ./argocd/argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+```
+
+- Get default admin password, test connection and change admin password
+```
+argocd admin initial-password -n argocd
+argocd login argocd.lab --insecure --username admin --password <admin password>
+argocd account update-password
+```
+
+- Creating Argo CD Apps (optional) 
+```
+argocd app create expresscart --repo https://github.com/AlmonChoi/Kube-Env_BareMetal.git --path manifest/app/overlays/development/ --dest-server https://kubernetes.default.svc --dest-namespace default
 ```
 
 ## Application Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
@@ -179,19 +208,19 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 
 ### Hubble-observability
 
-ExpressCart Application Namespace
+- ExpressCart Application Namespace
 <img src="./screen/hubble-observability_expresscart_namespace.jpg" width="800">
 
-Kube-System Namespace
+- Kube-System Namespace
 <img src="./screen/hubble-observability_kube-system_namespace.jpg" width="800">
 
-External-dns Namespace
+- External-dns Namespace
 <img src="./screen/hubble-observability_external-dns_namespace.png" width="500">
 
-Ingress-NGINX Namespace
+- Ingress-NGINX Namespace
 <img src="./screen/hubble-observability_ingress-nginx_namespace.png" width="800">
 
-Default Namespace
+- Default Namespace
 <img src="./screen/hubble-observability_default_namespace.png" width="800">
 
 
