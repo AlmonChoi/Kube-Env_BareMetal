@@ -65,7 +65,7 @@ kubectl apply -f .\manifest\externalDNS.yml
 ```
 > **Note**
 
-> This YAML file is customized with setting of local DNS server based on [RFC2136](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/rfc2136.md). Refer to [Tutorials](https://github.com/kubernetes-sigs/external-dns/tree/master/docs/tutorials) file for different DNS server provider. 
+> This YAML file is customized with setting of local DNS server based on [RFC2136](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/rfc2136.md) provider. Refer to [Tutorials](https://github.com/kubernetes-sigs/external-dns/tree/master/docs/tutorials) file for different DNS server provider. 
 
 
 ### 4. Deploy IPPool, setup BGP peering, Namespaces and Ingress of management software
@@ -73,8 +73,8 @@ kubectl apply -f .\manifest\externalDNS.yml
 kubectl apply -f .\manifest\platformConfig.yaml
 ```
 
-### 5. Deploy Argo CD and setup 
-- Install Argo CD via YAML. `argocd` namespace has been created in step 4. manageent manifest
+### 5. Deploy [Argo CD](https://argo-cd.readthedocs.io/en/stable/)
+- Install Argo CD via YAML. `argocd` namespace has been created in `Step 4` platform manifest above
 ```
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
@@ -97,18 +97,6 @@ argocd account update-password
 ```
 argocd app create expresscart --repo https://github.com/AlmonChoi/Kube-Env_BareMetal.git --path manifest/app/overlays/development/ --dest-server https://kubernetes.default.svc --dest-namespace default
 ```
-
-## Application Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
-
-### Manual deploy [expressCart](./blob/main/manifest/expresscart-Application.yaml) application in `Development` mode 
-``` 
-kubectl apply -k .\manifest\app\overlays\development
-```
-
-> **Note**
-
-> The expresscart application image pointed to local docker repo. Update the image path `repo.lab/expresscart` if the image stored in different location
-
 
 ## Deploy [Prometheus](https://github.com/prometheus/prometheus) and [Grafana](https://github.com/grafana/grafana) 
 
@@ -179,6 +167,20 @@ spec:
 - Use Prometheus UI to check the new alert rule has been added.
 - Slack will received old message which has been fired as `send_resolved: true` set
 - Kill a expresscart pod and wait for new message
+
+
+## Application Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
+
+### Manual deploy [expressCart](./blob/main/manifest/expresscart-Application.yaml) application in `Development` mode 
+``` 
+kubectl apply -k .\manifest\app\overlays\development
+```
+
+> **Note**
+
+> The expresscart application image pointed to local docker repo. Update the image path `repo.lab/expresscart` if the image stored in different location
+
+
 
 ## System vertification
 
