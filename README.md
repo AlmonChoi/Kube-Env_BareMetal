@@ -1,9 +1,9 @@
 # Kube-Env
-Building Bare-Metal Kubernetes development environment with demo application using [expressCart](https://github.com/mrvautin/expressCart)
+Building Bare-Metal Kubernetes development environment with demo application using [`expressCart`](https://github.com/mrvautin/expressCart)
 
 ### Preperation
 - Setup local DNS server support rfc2136 zone transfer
-- Setup local Router support BGP peering, for example VyOS virtual router. Setup remtoe AS to worker nodes
+- Setup local Router support BGP peering, for example VyOS virtual router. Setup remtoe Autonomous Systems (AS) with worker nodes
 ```
 set protocols bgp 65400 neighbor 192.168.88.111 remote-as 65400
 set protocols bgp 65400 neighbor 192.168.88.112 remote-as 65400
@@ -65,7 +65,7 @@ kubectl apply -f .\manifest\externalDNS.yml
 ```
 > **Note**
 
-> This YAML file is customized with setting of local DNS server based on [RFC2136](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/rfc2136.md) provider. Refer to [Tutorials](https://github.com/kubernetes-sigs/external-dns/tree/master/docs/tutorials) file for different DNS server provider. 
+> This YAML file is customized with setting of local DNS server based on [`RFC2136`](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/rfc2136.md) provider. Refer to [Tutorials](https://github.com/kubernetes-sigs/external-dns/tree/master/docs/tutorials) file for different DNS server provider. 
 
 
 ### 4. Deploy IPPool, setup BGP peering, Namespaces and Ingress of management software
@@ -78,7 +78,7 @@ kubectl apply -f .\manifest\platformConfig.yaml
 ```
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
-- Install Argo CD CLI 
+- Install `Argo CD CLI` 
 ```
 VERSION=$(curl -L -s https://raw.githubusercontent.com/argoproj/argo-cd/stable/VERSION)
 curl -sSL -o ./argocd/argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v$VERSION/argocd-linux-amd64
@@ -86,7 +86,7 @@ sudo install -m 555 ./argocd/argocd-linux-amd64 /usr/local/bin/argocd
 rm argocd-linux-amd64
 ```
 
-- Get default admin password, test connection and change admin password
+- Get default `admin` password, test connection and change `admin` password
 ```
 argocd admin initial-password -n argocd
 argocd login argocd.lab --insecure --username admin --password <admin password>
@@ -112,7 +112,7 @@ helm install -n prometheus-stack --version "51.5.3"\
 ### 2. Update Alert Manager to send message to Slack
 - Create the Slack channel and incoming Webhook URL
 - Use OpenLens, goto secret, edit alertmanager-prometheus-stack-alertmanager	
-- Update the below sections for `alertmanager.yaml` and save. Note : replace api_url with your Slack Webhook URL
+- Update the below sections for `alertmanager.yaml` and save. Note : replace api_url with your `Slack Webhook URL`
 ```
 global:
   resolve_timeout: 1m
@@ -164,7 +164,8 @@ spec:
             summary: Pod is not running
 ---------------
 ```
-- Use Prometheus UI to check the new alert rule has been added.
+- Use `Prometheus UI` to check the new alert rule has been added
+![Prometheus AlertRule](./screen/prometheus-PodNotRunning.jpg)
 - Slack will received old message which has been fired as `send_resolved: true` set
 - Kill a expresscart pod and wait for new message
 
