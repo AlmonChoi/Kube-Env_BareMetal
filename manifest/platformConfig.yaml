@@ -3,10 +3,11 @@
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumLoadBalancerIPPool
 metadata:
-  name: "expresscart-pool"
+  name: "lab-pool"
 spec:
-  cidrs:
-  - cidr: "192.168.89.0/24"
+  blocks:
+  - start: "192.168.89.1"
+    stop: "192.168.89.254"
   # serviceSelector:
   #   matchExpressions:
   #    - {key: role, operator: In, values: [frontend, monitor]}
