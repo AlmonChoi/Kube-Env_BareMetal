@@ -165,7 +165,7 @@ spec:
 ---------------
 ```
 - Use `Prometheus UI` to check the new alert rule has been added
-![Prometheus AlertRule](./screen/prometheus-PodNotRunning.jpg)
+![Prometheus AlertRule](./screen/prometheus-alerts-rule-PodNotRunning.jpg)
 - Slack will received old message which has been fired as `send_resolved: true` set
 - Kill a expresscart pod and wait for new message
 
