@@ -221,16 +221,16 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 <img src="./screen/hubble-observability_expresscart_namespace.jpg" width="800">
 
 - Kube-System Namespace
-<img src="./screen/hubble-observability_kube-system_namespace.jpg" width="800">
+<img src="./screen/hubble-observability_kube-system_namespace.jpg" width="600">
 
 - External-dns Namespace
-<img src="./screen/hubble-observability_external-dns_namespace.png" width="00">
+<img src="./screen/hubble-observability_external-dns_namespace.png" width="400">
 
 - Ingress-NGINX Namespace
 <img src="./screen/hubble-observability_ingress-nginx_namespace.png" width="800">
 
 - Prometheus-Stack Namespace
-<img src="./screen/hubble-observability_prometheus-stack_namespace.jpg" width="800">
+<img src="./screen/hubble-observability_prometheus-stack_namespace.jpg" width="900">
 
 - Argo CD Namespace
 <img src="./screen/hubble-observability_argocd_namespace.jpg" width="800">
