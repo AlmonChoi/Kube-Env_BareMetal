@@ -217,17 +217,23 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 
 ### Hubble-observability
 
-- ExpressCart Application Namespace
+- ExpressCart Application Development Namespace
 <img src="./screen/hubble-observability_expresscart_namespace.jpg" width="800">
 
 - Kube-System Namespace
 <img src="./screen/hubble-observability_kube-system_namespace.jpg" width="800">
 
 - External-dns Namespace
-<img src="./screen/hubble-observability_external-dns_namespace.png" width="500">
+<img src="./screen/hubble-observability_external-dns_namespace.png" width="00">
 
 - Ingress-NGINX Namespace
 <img src="./screen/hubble-observability_ingress-nginx_namespace.png" width="800">
+
+- Prometheus-Stack Namespace
+<img src="./screen/hubble-observability_prometheus-stack_namespace.jpg" width="800">
+
+- Argo CD Namespace
+<img src="./screen/hubble-observability_argocd_namespace.jpg" width="800">
 
 - Default Namespace
 <img src="./screen/hubble-observability_default_namespace.png" width="800">
