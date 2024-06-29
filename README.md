@@ -220,6 +220,10 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 - ExpressCart Application Development Namespace
 <img src="./screen/hubble-observability_expresscart_namespace.jpg" width="800">
 
+- ExpressCart Application Pod Traffic
+<img src="./screen/hubble-observability_expresscart_traffic.jpg" width="800">
+
+
 - Kube-System Namespace
 <img src="./screen/hubble-observability_kube-system_namespace.jpg" width="700">
 
