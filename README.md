@@ -230,7 +230,7 @@ tcpdump -n -i cilium_wg0	//Access application and there should be traffic flow u
 <img src="./screen/hubble-observability_ingress-nginx_namespace.png" width="800">
 
 - Prometheus-Stack Namespace
-<img src="./screen/hubble-observability_prometheus-stack_namespace.jpg" width="1000">
+<img src="./screen/hubble-observability_prometheus-stack_namespace.jpg" width="1200">
 
 - Argo CD Namespace
 <img src="./screen/hubble-observability_argocd_namespace.jpg" width="800">
