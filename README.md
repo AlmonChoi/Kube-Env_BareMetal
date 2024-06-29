@@ -105,17 +105,18 @@ argocd app create expresscart --repo https://github.com/AlmonChoi/Kube-Env_BareM
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 kubectl create namespace prometheus-stack
-helm install -n prometheus-stack --version "51.5.3"\
-    prometheus prometheus-community/kube-prometheus-stack -f .\manifest\prometheus-stack-myvalues.51.5.3.yaml
+helm install -n prometheus-stack --version "54.2.2"\
+    prometheus prometheus-community/kube-prometheus-stack -f .\manifest\prometheus-stack-myvalues.54.2.2.yaml
 ```
 
-### 2. Update Alert Manager to send message to Slack
-- Create the Slack channel and incoming Webhook URL
-- Use OpenLens, goto secret, edit alertmanager-prometheus-stack-alertmanager	
-- Update the below sections for `alertmanager.yaml` and save. Note : replace api_url with your `Slack Webhook URL`
+### 2. Update AlertManager to send message to Slack
+- Firstly, create the `Slack Channel` and get `incoming Webhook URL`
+- Use OpenLens, edit `alertmanager-prometheus-stack-alertmanager` secret.	
+- Update like below sections to `alertmanager.yaml` and save. Note : replace api_url with your `Slack Webhook URL`
 ```
 global:
   resolve_timeout: 1m
+--------------
 receivers:
 - name: "slack-notification"
   slack_configs:
@@ -133,15 +134,20 @@ route:
   - matchers:
     - alertname =~ "InfoInhibitor|Watchdog|PodNotRunning"
     receiver: "slack-notification"
+--------------
+
 ```
 
-- Check alertmanager updated the configuration or not. Note the date of "Loading configuration file" 
+- If there is no error on the configuration, `prometheus-stack-operator` will generate the `alertmanager-prometheus-stack-alertmanager-generated` secret. 
+
+- It takes 1-2 mins for alertmanager detected configuration change and perform configuration reload. Note the date/time of "Reload triggered" using the following command  
 ```
-kubectl logs -n prometheus-stack pod/alertmanager-prometheus-stack-alertmanager-0
-kubectl exec -n prometheus-stack pod/alertmanager-prometheus-stack-alertmanager-0 \
-          -- cat /etc/alertmanager/config_out/alertmanager.env.yaml
+kubectl logs -n prometheus-stack pods/alertmanager-prometheus-stack-alertmanager-0 config-reloader
 ```
-### 3. Update alert rules 
+level=info ts=2024-06-29T20:38:27.540157914Z caller=reloader.go:376 msg="`Reload triggered`" cfg_in=/etc/alertmanager/config/alertmanager.yaml.gz cfg_out=/etc/alertmanager/config_out/alertmanager.env.yaml watched_dirs=/etc/alertmanager/config
+
+
+### 3. Update AlertManager rules using CRD
 > **Note**
 
 >  Cannot directly edit the configMap object as it is managed by Prometheus Operator
@@ -168,7 +174,7 @@ spec:
 ![Prometheus AlertRule](./screen/prometheus-alerts-rule-PodNotRunning.jpg)
 - Slack will received old message which has been fired as `send_resolved: true` set
 - Kill a expresscart pod and wait for new message
-
+![Prometheus AlertRule](./screen/prometheus-alerts-firing-PodNotRunning.jpg)
 
 ## Application Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
 
