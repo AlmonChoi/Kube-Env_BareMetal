@@ -1,5 +1,9 @@
 # Kube-Env
-[Building Ubuntu `Autoinstall` ISO](https://canonical-subiquity.readthedocs-hosted.com/en/latest/howto/autoinstall-quickstart.html)
+Building Ubuntu [`Autoinstall`](https://canonical-subiquity.readthedocs-hosted.com/en/latest/intro-to-autoinstall.html) ISO
+
+Automatic Ubuntu installation is performed with the autoinstall format. You might also know this feature as “unattended”, “hands-off” or “preseeded” installation. Automatic installation lets you answer all configuration questions ahead of time with an autoinstall configuration and lets the installation process run without any interaction
+
+
 
 ### Auto-install files
 
@@ -63,5 +67,7 @@ xorriso -as mkisofs -r -V "ubuntu-22.04.3_autoinstall" -J -boot-load-size 4 -boo
 ```
 
 ### Reference
+
+[https://canonical-subiquity.readthedocs-hosted.com/en/latest/howto/autoinstall-quickstart.html](https://canonical-subiquity.readthedocs-hosted.com/en/latest/howto/autoinstall-quickstart.html)
 
 [https://canonical-subiquity.readthedocs-hosted.com/en/latest/reference/autoinstall-reference.html](https://canonical-subiquity.readthedocs-hosted.com/en/latest/reference/autoinstall-reference.html)
