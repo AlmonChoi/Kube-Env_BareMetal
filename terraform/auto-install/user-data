@@ -1,0 +1,36 @@
+#cloud-config
+autoinstall:
+  version: 1
+  early-commands:
+     - sudo systemctl stop ssh
+  locale: en_US
+  keyboard:
+    layout: us
+    variant: ""
+  storage:
+    layout:
+      name: lvm
+  identity:
+    hostname: ubuntu
+    username: opcon1
+    password: $6$rounds=4096$o926D4byAhn5bmc.$n.5uRny6ILd977MA1lnG5xUo1r6b.9AoJ1PpEOprmLbTJ.z7VtfT/PflAP2pI.Mj8DjhH0.xmNrxQPOEmBCrx.
+    realname: Operator
+  kernel:
+    package: linux-generic
+  ssh:
+    install-server: true
+    allow-pw: true
+  packages:
+    - htop
+    - tmux
+    - whois
+    - dnsutils
+    - jq
+  user-data:
+    disable_root: false
+  updates: security
+  shutdown: reboot	
+  late-commands:
+    - echo 'opcon1 ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/opcon1
+    - curtin in-target --target=/target -- chmod 400 /etc/sudoers.d/opcon1
+
