@@ -39,7 +39,7 @@ menuentry "Autoinstall Ubuntu Server" {
 }
 ```
 
-### Create ISO image
+### Create ISO image using [`xorriso`](https://www.gnu.org/software/xorriso)
 
 - Install xorriso 
 ```
