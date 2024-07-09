@@ -46,10 +46,14 @@ menuentry "Autoinstall Ubuntu Server" {
 sudo apt install -y xorriso 
 ```
 
+- Dowloadn Ubunutu [ISO image](https://releases.ubuntu.com) from Ubuntu releases 
+
 - Extract ISO image to files 
 ```
 mkdir source-files
-xorriso -osirrox on -indev ubuntu-22.04.3-live-server-amd64.iso --extract_boot_images source-files/bootpart -extract / source-files 
+xorriso -osirrox on -indev ubuntu-22.04.3-live-server-amd64.iso \
+        --extract_boot_images source-files/bootpart \
+        -extract / source-files 
 ```
 
 - Copy auto-install files and `GRUB` menu to source-files
@@ -63,7 +67,14 @@ cp grub.cfg source-files/boot/grub/grub.cfg
 - make ISO image
 ```
 cd source-files
-xorriso -as mkisofs -r -V "ubuntu-22.04.3_autoinstall" -J -boot-load-size 4 -boot-info-table -input-charset utf-8 -eltorito-alt-boot -b bootpart/eltorito_img1_bios.img -no-emul-boot -o ../ubuntu-22.04.3-autoinstall.iso .
+xorriso -as mkisofs -r -V "ubuntu-22.04.3_autoinstall" \
+        -J -boot-load-size 4 \
+        -boot-info-table \
+        -input-charset utf-8 \
+        -eltorito-alt-boot \
+        -b bootpart/eltorito_img1_bios.img \
+        -no-emul-boot \
+        -o ../ubuntu-22.04.3-autoinstall.iso .
 ```
 
 ### Reference
