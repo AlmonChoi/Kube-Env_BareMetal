@@ -19,7 +19,7 @@ ssh_authorized_keys = [
 ]
 
 
-iso_url              = "file://<<path>>/ubuntu-22.04.3-live-server-amd64.iso"
+iso_url              = "file://<<path>>/ubuntu-24.04-live-server-amd64.iso"
 iso_checksum         = "none"
 
 hardware_version     = 17
