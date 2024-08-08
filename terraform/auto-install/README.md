@@ -72,7 +72,7 @@ xorriso -as mkisofs -r -V "ubuntu-24.04_autoinstall" \
         -boot-info-table \
         -input-charset utf-8 \
         -eltorito-alt-boot \
-        -b bootpart/eltorito_img1_bios.img \
+        -b bootpart/eltorito_img1_uefi.img \
         -no-emul-boot \
         -o ../ubuntu-24.04-autoinstall.iso .
 ```
