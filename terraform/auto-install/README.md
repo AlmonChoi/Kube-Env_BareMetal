@@ -34,7 +34,7 @@ set timeout=5
 ```
 menuentry "Autoinstall Ubuntu Server" {
   set gfxplayload=keep
-  linux  /casper/vmlinuz quite autoinstall ds=nocloud\;s=/cdrom/nocloud/ ---
+  linux   /casper/vmlinuz quite autoinstall ds=nocloud\;s=/cdrom/nocloud/ ---
   initrd /casper/initrd
 }
 ```
@@ -60,7 +60,7 @@ xorriso -osirrox on -indev ubuntu-24.04-live-server-amd64.iso \
 ```
 mkdir source-files/nocloud
 cp user-data source-files/nocloud/user-data
-cp meta-data source-files/nocloud/medta-data
+cp meta-data source-files/nocloud/meta-data
 cp grub.cfg source-files/boot/grub/grub.cfg
 ```
 

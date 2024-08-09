@@ -3,10 +3,11 @@ autoinstall:
   version: 1
   early-commands:
      - sudo systemctl stop ssh
-  locale: en_US
+  locale: en_US.UTF-8
   keyboard:
     layout: us
     variant: ""
+  timezone: Eurpose/London
   storage:
     layout:
       name: lvm
