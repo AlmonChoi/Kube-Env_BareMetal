@@ -30,11 +30,20 @@ mkpasswd -m sha-512 --rounds=4096
 set timeout=5
 ```
 
-- Add Autoinstall menu item
+- Add Autoinstall menu item 
 ```
 menuentry "Autoinstall Ubuntu Server" {
   set gfxplayload=keep
   linux   /casper/vmlinuz quite autoinstall ds=nocloud\;s=/cdrom/nocloud/ ---
+  initrd /casper/initrd
+}
+```
+
+- If the Auto-install files stored in web server
+```
+menuentry "Autoinstall Ubuntu Server" {
+  set gfxplayload=keep
+  linux   /casper/vmlinuz quite autoinstall ds=nocloud\;s=http://[ipv4_address]/cloud-init/ ---
   initrd /casper/initrd
 }
 ```

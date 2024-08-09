@@ -30,7 +30,7 @@ autoinstall:
   user-data:
     disable_root: false
   updates: security
-  shutdown: reboot	
+  shutdown: reboot
   late-commands:
     - echo 'opcon1 ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/opcon1
     - curtin in-target --target=/target -- chmod 400 /etc/sudoers.d/opcon1
