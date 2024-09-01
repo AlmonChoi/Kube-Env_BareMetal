@@ -5,6 +5,7 @@ Building Bare-Metal Kubernetes development environment with demo application usi
 - Setup local DNS server support rfc2136 zone transfer
 - Setup local Router support BGP peering, for example VyOS virtual router. Setup remtoe Autonomous Systems (AS) with worker nodes
 ```
+#Example of VyOS
 set protocols bgp 65400 neighbor 192.168.88.111 remote-as 65400
 set protocols bgp 65400 neighbor 192.168.88.112 remote-as 65400
 set protocols bgp 65400 neighbor 192.168.88.111 address-family ipv4-unicast
