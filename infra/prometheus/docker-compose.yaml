@@ -1,0 +1,44 @@
+version: '2.0'
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus-server
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.29
+      backend:
+    ports:
+      - 9090:9090
+    volumes:
+      - ./config:/etc/prometheus
+      - ./data:/prometheus
+
+  node-exporter:
+    privileged: true
+    image: prom/node-exporter
+    container_name: prometheus-node-nas
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks: 
+      - backend
+    ports:
+      - 9100:9100
+    restart: always
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    depends_on:
+      - prometheus
+
+networks:
+  network_macvlan:
+    name: network00
+    external: true
+  backend:
+    name: prometheus_network
+    driver: bridge
+
