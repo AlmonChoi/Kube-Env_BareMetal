@@ -112,7 +112,7 @@ helm install -n prometheus-stack --version "54.2.2"\
 
 > **Note**
 
-> The Helm above deploy Prometheus, AlertManager and Grafana to Kubernetes cluster. To deploy Prometheus and related component separately (e.g. Docker on other host), refer to [Prometheus](./infra/Prometheus) under Infra folder.
+> The Helm above deploy Prometheus, AlertManager and Grafana to Kubernetes cluster. To deploy Prometheus and related component separately (e.g. Docker on other host), refer to [Prometheus](./infra/prometheus) under Infra folder.
 
 
 ### 2. Update AlertManager to send message to Slack
