@@ -17,10 +17,29 @@ services:
     entrypoint: /bin/prometheus 
     command: --config.file=/etc/prometheus/prometheus.yml --web.config.file=/etc/prometheus/web.yml --storage.tsdb.path=/prometheus 
 
+
+  alertmanager:
+    image: prom/alertmanager
+    container_name: prometheus-alert
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.30
+      backend:
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alert-config:/config
+      - ./alert-data:/data
+    command: 
+      - --config.file=/config/alertmanager.yml 
+      - --log.level=debug
+
+
   node-exporter:
     privileged: true
     image: prom/node-exporter
-    container_name: prometheus-node-nas
+    container_name: prometheus-node
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -35,6 +54,19 @@ services:
       - '--path.sysfs=/host/sys'
       - --collector.filesystem.ignored-mount-points
       - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: prometheus-grafana
+    networks:
+      network_macvlan: 
+        ipv4_address: 192.168.0.31
+      backend:
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana:/etc/grafana/
+      - ./grafana-data:/var/lib/grafana
 
 networks:
   network_macvlan:

@@ -21,4 +21,13 @@ scrape_configs:
   - job_name: nas
     scrape_interval: 5s
     static_configs:
-    - targets: ['prometheus-node-nas:9100']
+    - targets: ['prometheus-node:9100']
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets: [ 'prometheus-alert:9093' ]
+
+rule_files:
+  - rules.yaml
