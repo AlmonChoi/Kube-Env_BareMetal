@@ -24,7 +24,7 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 ### Building Kubernetes cluster VM using Packer with VMWare workstation
 
 [Create a 3-node cluster (1 x control + 2 worker nodes)](./Packer/README.md) with
-- [Kubernets cluster](https://kubernetes.io/docs/concepts/overview/) version 1.27 
+- [Kubernets cluster](https://kubernetes.io/docs/concepts/overview/) version 1.31 
 - [Conatinerd](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd) [(CRI)](https://kubernetes.io/docs/concepts/architecture/cri/) 
 - [Cilium](https://docs.cilium.io/en/latest/overview/intro/) (CNI, LoadBalancer, IPPool, BGP, WireGuard Transparent Encryption) 
 - [Ingress-Nginx Controller](https://kubernetes.github.io/ingress-nginx/)
@@ -56,8 +56,8 @@ kubectl get nodes
 ### 2. Label worker nodes for BGP policy
 ```
 kubectl label nodes k8s-control.localdomain bgp-policy=homelab
-kubectl label nodes k8s-worker1.localdomain bgp-policy=homelab		
-kubectl label nodes k8s-worker2.localdomain bgp-policy=homelab		
+kubectl label nodes k8s-node1.localdomain bgp-policy=homelab		
+kubectl label nodes k8s-node2.localdomain bgp-policy=homelab		
 ```
 
 ### 3. Deploy [external-dns](https://github.com/kubernetes-sigs/external-dns) with RBAC

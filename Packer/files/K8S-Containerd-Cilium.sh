@@ -34,9 +34,9 @@ echo "--> ============================================"
 # Host table for control and worker nodes
 echo "--> updating host table"
 cat <<EOF | sudo tee -a /etc/hosts
-192.168.0.110 k8s-control k8s-control.localdomain
-192.168.0.111 k8s-worker1 k8s-worker1.localdomain
-192.168.0.112 k8s-worker2 k8s-worker2.localdomain
+192.168.88.100 k8s-control k8s-control.localdomain
+192.168.88.111 k8s-node1 k8s-node1.localdomain
+192.168.88.112 k8s-node2 k8s-node2.localdomain
 EOF
 
 # Disable swap
@@ -85,16 +85,21 @@ sudo tar zxvf crictl-v$CRICTL_VERSION-linux-amd64.tar.gz -C /usr/local/bin
 rm -f crictl-v$CRICTL_VERSION-linux-amd64.tar.gz
 echo "runtime-endpoint: unix:///run/containerd/containerd.sock" | sudo tee /etc/crictl.yaml
 
-echo "--> install Kubernetes components v1.27 - kubelet kubeadm kubectl"
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.27/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.27/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+echo "--> install Kubernetes components v1.30 - kubelet kubeadm kubectl"
+echo "    for compatible with ingress-NGINX v1.11.3"
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.27/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 sudo apt update
 sudo apt install -y kubelet kubeadm kubectl
 
 echo "--> on hold update of kubelet kubeadm kubectl"
 sudo apt-mark hold kubelet kubeadm kubectl
+
+echo "--> important LAB self-signed CA"
+mkdir /usr/local/share/ca-certificates/
+cp lab-rootCA.crt /usr/local/share/ca-certificates/
+sudo update-ca-certificates
 
 if [ $HOSTNAME == "k8s-control.localdomain" ]; then
     echo "--> this is Kubernetes control plan"
@@ -107,15 +112,15 @@ if [ $HOSTNAME == "k8s-control.localdomain" ]; then
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
    
     echo "-> install helm and helmctl"
-    curl -o /tmp/helm.tar.gz -LO https://get.helm.sh/helm-v3.10.1-linux-amd64.tar.gz
+    curl -o /tmp/helm.tar.gz -LO https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz
     tar -C /tmp/ -zxvf /tmp/helm.tar.gz
     sudo mv /tmp/linux-amd64/helm /usr/local/bin/helm
     sudo chmod +x /usr/local/bin/helm
 
     echo "-> prepare ingress-NGINX yaml file"
     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-    CHART_VERSION="4.8.0"
-    APP_VERSION="1.9.0"
+    CHART_VERSION="4.11.3"
+    APP_VERSION="1.11.3"
 
     helm template ingress-nginx ingress-nginx \
       --repo https://kubernetes.github.io/ingress-nginx \
