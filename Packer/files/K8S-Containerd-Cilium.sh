@@ -88,10 +88,10 @@ echo "runtime-endpoint: unix:///run/containerd/containerd.sock" | sudo tee /etc/
 echo "--> install Kubernetes components v1.30 - kubelet kubeadm kubectl"
 echo "    for compatible with ingress-NGINX v1.11.3"
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
 sudo apt update
-sudo apt install -y kubelet kubeadm kubectl
+sudo apt install -y kubelet=1.30.8-1.1 kubeadm=1.30.8-1.1 kubectl=1.30.8-1.1
 
 echo "--> on hold update of kubelet kubeadm kubectl"
 sudo apt-mark hold kubelet kubeadm kubectl
