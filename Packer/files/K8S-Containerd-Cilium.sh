@@ -115,14 +115,6 @@ if [ $HOSTNAME == "k8s-control.localdomain" ]; then
     wget https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb \
       && apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb
 
-    # mkdir ~/k9s-installation
-    # cd ~/k9s-installation 
-    # curl -LO https://github.com/derailed/k9s/releases/download/v0.27.4/k9s_Linux_amd64.tar.gz
-    # tar xf k9s_Linux_amd64.tar.gz
-    # sudo mv k9s /usr/local/bin
-    # cd ..
-    # rm -rf ~/k9s-installation
-
     echo "-> install helm and helmctl"
     curl -o /tmp/helm.tar.gz -LO https://get.helm.sh/helm-v3.10.1-linux-amd64.tar.gz
     tar -C /tmp/ -zxvf /tmp/helm.tar.gz
@@ -149,7 +141,7 @@ if [ $HOSTNAME == "k8s-control.localdomain" ]; then
     sudo tar xzvfC hubble-linux-${HUBBLE_ARCH}.tar.gz /usr/local/bin
     rm hubble-linux-${HUBBLE_ARCH}.tar.gz{,.sha256sum}
 
-    # echo "-> install Cilium NCI and replace kube-proxy" 
+    echo "-> install Cilium NCI and replace kube-proxy" 
     # Replace KubeProxy (Require Linux 5.10+ for enable Socket-LB feature)
     # Enable Hubble in Cilium
     # Enable Cilium Gateway API Controller
