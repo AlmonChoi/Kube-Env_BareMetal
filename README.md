@@ -24,7 +24,7 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 ### Building Kubernetes cluster VM using Packer with VMWare workstation
 
 [Create a 3-node cluster (1 x control + 2 worker nodes)](./Packer/README.md) with
-- [Kubernets cluster](https://kubernetes.io/docs/concepts/overview/) version 1.31 
+- [Kubernets cluster](https://kubernetes.io/docs/concepts/overview/) version 1.33.5
 - [Conatinerd](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd) [(CRI)](https://kubernetes.io/docs/concepts/architecture/cri/) 
 - [Cilium](https://docs.cilium.io/en/latest/overview/intro/) (CNI, LoadBalancer, IPPool, BGP, WireGuard Transparent Encryption) 
 - [Ingress-Nginx Controller](https://kubernetes.github.io/ingress-nginx/)
@@ -62,7 +62,7 @@ kubectl label nodes k8s-node2.localdomain bgp-policy=homelab
 
 ### 3. Deploy [external-dns](https://github.com/kubernetes-sigs/external-dns) with RBAC
 ```
-kubectl apply -f .\manifest\externalDNS.yml
+kubectl apply -f ./manifest/externalDNS.yml
 ```
 > **Note**
 
@@ -71,7 +71,7 @@ kubectl apply -f .\manifest\externalDNS.yml
 
 ### 4. Deploy IPPool, setup BGP peering, Namespaces and Ingress of management software
 ```
-kubectl apply -f .\manifest\platformConfig.yaml
+kubectl apply -f ./manifest/platformConfig.yaml
 ```
 
 ### 5. Deploy [Argo CD](https://argo-cd.readthedocs.io/en/stable/)
@@ -107,7 +107,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 kubectl create namespace prometheus-stack
 helm install -n prometheus-stack --version "54.2.2"\
-    prometheus prometheus-community/kube-prometheus-stack -f .\manifest\prometheus-stack-myvalues.54.2.2.yaml
+    prometheus prometheus-community/kube-prometheus-stack -f ./manifest/prometheus-stack-myvalues.54.2.2.yaml
 ```
 
 > **Note**
@@ -186,7 +186,7 @@ spec:
 
 ### Manual deploy [expressCart](./blob/main/manifest/expresscart-Application.yaml) application in `Development` mode 
 ``` 
-kubectl apply -k .\manifest\app\overlays\development
+kubectl apply -k ./manifest/app/overlays/development
 ```
 
 > **Note**
