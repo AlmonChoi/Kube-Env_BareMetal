@@ -185,8 +185,13 @@ spec:
 ## Application Deployment with [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
 
 ### Manual deploy [expressCart](./blob/main/manifest/expresscart-Application.yaml) application in `Development` mode 
+- Start with standalone MongoDB instance, OR
 ``` 
-kubectl apply -k ./manifest/app/overlays/development
+kubectl apply -k ./manifest/app/overlays/development 
+```
+- Start with MongoDB replica set (Require prior install of [MCK](./manifest/app.rs/README.md))
+```
+kubectl apply -k ./manifest/app.rs/overlays/development 
 ```
 
 > **Note**
