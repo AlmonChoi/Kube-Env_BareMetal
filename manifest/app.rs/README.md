@@ -1,7 +1,7 @@
 # Kube-Env
-Building Bare-Metal Kubernetes development environment with demo application using \[`expressCart`](https://github.com/mrvautin/expressCart)
+Building Bare-Metal Kubernetes development environment with demo application using [`expressCart`](https://github.com/mrvautin/expressCart)
 
-### Implementation of MongoDB replica set using \[Mongodb Controllers for Kubernetes (MCK)](https://github.com/mongodb/mongodb-kubernetes) 
+### Implementation of MongoDB replica set using [Mongodb Controllers for Kubernetes (MCK)](https://github.com/mongodb/mongodb-kubernetes) 
 
 - Create MongoDB namespace
 
