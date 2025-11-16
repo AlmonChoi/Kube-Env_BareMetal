@@ -1,0 +1,87 @@
+---
+# ConfigMap for ExpressCart application
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-configmap
+  namespace: expresscart
+data:
+  database_url: mongodb://admin:superSecretPassword123@mongodb-replset-0.mongodb-replset.mongodb.svc.cluster.local:27017,mongodb-replset-1.mongodb-replset.mongodb.svc.cluster.local:27017,mongodb-replset-2.mongodb-replset.mongodb.svc.cluster.local:27017/admin?replicaSet=mongodb-replset
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  namespace: expresscart
+  labels:
+     app: mongo-express
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+       app: mongo-express
+  template:
+    metadata:
+       labels:
+         app: mongo-express
+         role: monitor
+    spec:
+       initContainers:
+        - name: wait-for-any-mongo
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for any MongoDB replica member to be online..."
+
+              until \
+                nc -z mongodb-replset-0.mongodb-replset.mongodb.svc.cluster.local 27017 || \
+                nc -z mongodb-replset-1.mongodb-replset.mongodb.svc.cluster.local 27017 || \
+                nc -z mongodb-replset-2.mongodb-replset.mongodb.svc.cluster.local 27017
+              do
+                echo "MongoDB is not ready yet... retrying in 10 seconds"
+                sleep 10
+              done
+
+              echo "A MongoDB replica member is reachable! Proceeding."
+       containers:
+       - name: mongo-express
+         image: mongo-express
+         ports:
+         - containerPort: 8081
+         env:
+         - name: ME_CONFIG_MONGODB_REPLSET
+           value: "mongodb-replset"
+         - name: ME_CONFIG_MONGODB_URL
+           valueFrom:
+              configMapKeyRef:
+                 name: mongodb-configmap
+                 key: database_url
+         - name: ME_CONFIG_SITE_BASEURL  
+           value: "/mongo"   
+         - name: ME_CONFIG_BASICAUTH_USERNAME
+           valueFrom:
+             secretKeyRef: 
+               name: mongoexpress-login
+               key: username
+         - name: ME_CONFIG_BASICAUTH_PASSWORD
+           valueFrom:
+             secretKeyRef: 
+               name: mongoexpress-login
+               key: password
+
+
+---					
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-service
+  namespace: expresscart
+spec:
+  selector:
+    app: mongo-express
+  ports:
+    - protocol: TCP
+      port: 8081

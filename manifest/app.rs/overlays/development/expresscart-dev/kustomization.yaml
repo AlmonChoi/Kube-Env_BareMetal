@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Development namespace
+namespace: expresscart-dev
+
+resources:
+- ../../../base
+- mongo-express.yaml
+
+images:
+  - name: repo.lab/expresscart
+    newTag: 1.0.3
+
+# Generate the secret for mongoExpress admin login
+secretGenerator:
+- name: mongoexpress-login
+  literals:
+  - username=admin
+  - password=admin
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    type: generated
+  annotations:
+    note: generated

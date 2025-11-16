@@ -1,0 +1,21 @@
+---
+# Netowrk policy limited the DB communication by frontend and montior Pods
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-db-access-in-namespace
+  namespace: expresscart
+spec:
+  description: "Allow database connect from frontend and monitor role"
+  endpointSelector: 
+    matchLabels:
+      app: mongodb
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+      matchExpressions:
+      - {key: role, operator: In, values: [frontend, monitor]}
+    toPorts:
+    - ports:
+      - port: "27017"
+        protocol: TCP

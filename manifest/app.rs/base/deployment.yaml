@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expresscart
+  namespace: expresscart
+  labels:
+    app: expresscart
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: expresscart
+  template:
+    metadata:
+      labels:
+        app: expresscart
+        role: frontend
+    spec:
+      # wait until any one of mongodb replica set started
+      initContainers:
+        - name: wait-for-any-mongo
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for any MongoDB replica member to be online..."
+
+              until \
+                nc -z mongodb-replset-0.mongodb-replset.mongodb.svc.cluster.local 27017 || \
+                nc -z mongodb-replset-1.mongodb-replset.mongodb.svc.cluster.local 27017 || \
+                nc -z mongodb-replset-2.mongodb-replset.mongodb.svc.cluster.local 27017
+              do
+                echo "MongoDB is not ready yet... retrying in 10 seconds"
+                sleep 10
+              done
+
+              echo "A MongoDB replica member is reachable! Proceeding."
+      # Node.js (Express, MongoDB) application https://github.com/mrvautin/expressCart. Conatienr image builded and pre-imported using ctr command
+      containers:
+      - name: expresscart
+        image: repo.lab/expresscart:1.0.1
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: docker-volume-uploads
+            mountPath: /opt/expressCart/public/uploads
+          - name: docker-volume-config
+            mountPath: /opt/expressCart/config
+        ports:
+        - containerPort: 1111
+      volumes:      
+        - name: docker-volume-uploads
+          nfs:                                                # Direct using NFS without PersistentVolume and PersistentVolumeClaim
+            server: dsm.lab                                   # Worker node nfs-common package required 
+            path: /volume2/docker/expressCart/uploads
+            readOnly: false
+        - name: docker-volume-config
+          nfs:
+            server: dsm.lab
+            path: /volume2/docker/expressCart/config-rs
+            readOnly: false
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expresscart-service
+  namespace: expresscart
+spec:
+  selector:
+    app: expresscart
+  ports:
+    - protocol: TCP
+      port: 1111
+
+
+
