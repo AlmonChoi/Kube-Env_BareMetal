@@ -1,0 +1,233 @@
+---
+# ==============================================================================
+# 1. COMMON SYSTEM & CONTAINER RUNTIME PREPARATION (ALL NODES)
+# ==============================================================================
+
+- name: Set timezone to London
+  ansible.builtin.timezone:
+    name: Europe/London
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_facts['swaptotal_mb'] > 0
+
+- name: Remove swap entry from fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^.*swap.*$'
+    replace: ''
+
+- name: Load required kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Set sysctl parameters for Kubernetes networking
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+    - { key: 'net.ipv4.ip_forward', value: '1' }
+
+- name: Remove stale Kubernetes keyring and repo list
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/keyrings/kubernetes-apt-keyring.gpg
+    - /etc/apt/sources.list.d/kubernetes.list
+
+- name: Create directory for Kubernetes apt keyrings
+  file:
+    path: /etc/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Add Kubernetes GPG apt key
+  shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ k8s_version.split('.')[:2] | join('.') }}/deb/Release.key | gpg --dearmor -o /etc/keyrings/kubernetes-apt-keyring.gpg
+  args:
+    creates: /etc/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add official Kubernetes apt repository
+  copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    content: "deb [signed-by=/etc/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version.split('.')[:2] | join('.') }}/deb/ /\n"
+
+- name: Update apt cache for new Kubernetes repo
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Install Containerd and pinned Kubernetes components
+  apt:
+    name:
+      - containerd
+      - kubelet={{ k8s_version }}-*
+      - kubeadm={{ k8s_version }}-*
+      - kubectl={{ k8s_version }}-*
+      - curl
+    state: present
+
+- name: Hold Kubernetes packages to prevent automatic upgrades
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Install required system packages
+  apt:
+    name:
+      - curl
+      - gnupg2
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - net-tools
+    state: present
+
+- name: Generate default containerd configuration
+  shell: |
+    mkdir -p /etc/containerd
+    containerd config default > /etc/containerd/config.toml
+    sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+  args:
+    creates: /etc/containerd/config.toml
+
+- name: Ensure Containerd & Kubelet are enabled and running
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - containerd
+    - kubelet
+
+# ==============================================================================
+# 2. FIRST CONTROL PLANE NODE SETUP (PRIMARY NODE)
+# ==============================================================================
+
+- name: Create Kubernetes manifests directory (Primary Node)
+  file:
+    path: /etc/kubernetes/manifests
+    state: directory
+    mode: '0755'
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Create Kube-VIP Manifest for HA (Primary Node First)
+  shell: |
+    ctr image pull ghcr.io/kube-vip/kube-vip:v{{ kube_vip_version }}
+    ctr run --rm --net-host ghcr.io/kube-vip/kube-vip:v{{ kube_vip_version }} vip \
+    /kube-vip manifest pod \
+    --interface {{ vip_interface }} \
+    --address {{ virtual_ip }} \
+    --controlplane \
+    --services \
+    --arp \
+    --leaderElection > /etc/kubernetes/manifests/kube-vip.yaml
+  when: inventory_hostname == groups['control_plane'][0]
+  args:
+    creates: /etc/kubernetes/manifests/kube-vip.yaml
+
+- name: Temporarily set Kube-VIP to use super-admin.conf during bootstrap
+  replace:
+    path: /etc/kubernetes/manifests/kube-vip.yaml
+    regexp: '/etc/kubernetes/admin.conf'
+    replace: '/etc/kubernetes/super-admin.conf'
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Initialize Kubernetes Control Plane (Primary Node)
+  command: >
+    kubeadm init
+    --control-plane-endpoint="{{ virtual_ip }}:6443"
+    --upload-certs
+    --pod-network-cidr="{{ pod_network_cidr }}"
+    --skip-phases=addon/kube-proxy
+    --ignore-preflight-errors=CreateControlPlaneEndpoint
+  register: kubeadm_init
+  when: inventory_hostname == groups['control_plane'][0]
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Switch Kube-VIP back to admin.conf after init completes
+  replace:
+    path: /etc/kubernetes/manifests/kube-vip.yaml
+    regexp: '/etc/kubernetes/super-admin.conf'
+    replace: '/etc/kubernetes/admin.conf'
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Setup kubeconfig for ubuntu user on Primary Node
+  shell: |
+    mkdir -p /home/{{ ansible_user }}/.kube
+    cp -f /etc/kubernetes/admin.conf /home/{{ ansible_user }}/.kube/config
+    chown -R {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Wait for Kubernetes API server to become ready via VIP
+  wait_for:
+    host: "{{ virtual_ip }}"
+    port: 6443
+    delay: 5
+    timeout: 90
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Generate Join Command for Secondary Control Nodes
+  command: kubeadm token create --print-join-command
+  register: cp_join_command
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Extract Certificate Key for Control Plane
+  shell: kubeadm init phase upload-certs --upload-certs | tail -n 1
+  register: cp_cert_key
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Set Join Command Facts
+  set_fact:
+    control_plane_join_cmd: "{{ hostvars[groups['control_plane'][0]]['cp_join_command'].stdout }} --control-plane --certificate-key {{ hostvars[groups['control_plane'][0]]['cp_cert_key'].stdout }}"
+  run_once: true
+  when: hostvars[groups['control_plane'][0]]['cp_join_command'] is defined
+
+# ==============================================================================
+# 3. JOIN OTHER CONTROL PLANE NODES & DEPLOY KUBE-VIP
+# ==============================================================================
+
+- name: Join Secondary Control Plane Nodes to Cluster
+  command: "{{ control_plane_join_cmd }}"
+  when: inventory_hostname in groups['control_plane'] and inventory_hostname != groups['control_plane'][0]
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Create Kube-VIP Manifest on Secondary Control Plane Nodes AFTER Join
+  shell: |
+    mkdir -p /etc/kubernetes/manifests/
+    ctr image pull ghcr.io/kube-vip/kube-vip:v{{ kube_vip_version }}
+    ctr run --rm --net-host ghcr.io/kube-vip/kube-vip:v{{ kube_vip_version }} vip \
+    /kube-vip manifest pod \
+    --interface {{ vip_interface }} \
+    --address {{ virtual_ip }} \
+    --controlplane \
+    --services \
+    --arp \
+    --leaderElection > /etc/kubernetes/manifests/kube-vip.yaml
+  when: inventory_hostname in groups['control_plane'] and inventory_hostname != groups['control_plane'][0]
+  args:
+    creates: /etc/kubernetes/manifests/kube-vip.yaml
+
+- name: Setup kubeconfig for ubuntu user on Secondary Control Nodes
+  shell: |
+    mkdir -p /home/{{ ansible_user }}/.kube
+    cp -f /etc/kubernetes/admin.conf /home/{{ ansible_user }}/.kube/config
+    chown -R {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube
+  when: inventory_hostname in groups['control_plane'] and inventory_hostname != groups['control_plane'][0]

@@ -20,8 +20,9 @@ set protocols bgp 65400 neighbor 192.168.88.112 address-family ipv4-unicas
 - Kubernetes pod-network-cidr 10.0.0.0/16
 - Kubernetes external load balancer IP pool 192.168.89.0/24
 
-
 ### Building Kubernetes cluster VM using Packer with VMWare workstation
+
+Note: Or use the Terraform and Ansible to automate the cluster creation. Goto [Terraform.Proxmox](./terraform.proxmox/) and contiune [Application Deployment](#application-deployment-with-kustomize)
 
 [Create a 3-node cluster (1 x control + 2 worker nodes)](./Packer/README.md) with
 - [Kubernets cluster](https://kubernetes.io/docs/concepts/overview/) version 1.33.5

@@ -1,0 +1,142 @@
+---
+# ==============================================================================
+# 1. COMMON SYSTEM & CONTAINER RUNTIME PREPARATION (ALL NODES)
+# ==============================================================================
+
+- name: Set timezone to London
+  ansible.builtin.timezone:
+    name: Europe/London
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_facts['swaptotal_mb'] > 0
+
+- name: Remove swap entry from fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^.*swap.*$'
+    replace: ''
+
+- name: Load required kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Set sysctl parameters for Kubernetes networking
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+    - { key: 'net.ipv4.ip_forward', value: '1' }
+
+- name: Remove stale Kubernetes keyring and repo list
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/keyrings/kubernetes-apt-keyring.gpg
+    - /etc/apt/sources.list.d/kubernetes.list
+
+- name: Create directory for Kubernetes apt keyrings
+  file:
+    path: /etc/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Add Kubernetes GPG apt key
+  shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ k8s_version.split('.')[:2] | join('.') }}/deb/Release.key | gpg --dearmor -o /etc/keyrings/kubernetes-apt-keyring.gpg
+  args:
+    creates: /etc/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add official Kubernetes apt repository
+  copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    content: "deb [signed-by=/etc/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version.split('.')[:2] | join('.') }}/deb/ /\n"
+
+- name: Update apt cache for new Kubernetes repo
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Install Containerd and Kubernetes components on worker
+  apt:
+    name:
+      - containerd
+      - kubelet={{ k8s_version }}-1.1
+      - kubeadm={{ k8s_version }}-1.1   
+    state: present
+
+- name: Hold Kubernetes packages to prevent automatic upgrades
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+
+- name: Install required system packages
+  apt:
+    name:
+      - curl
+      - gnupg2
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - net-tools
+      - nfs-common
+    state: present
+
+- name: Generate default containerd configuration
+  shell: |
+    mkdir -p /etc/containerd
+    containerd config default > /etc/containerd/config.toml
+    sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+  args:
+    creates: /etc/containerd/config.toml
+
+- name: Ensure Containerd & Kubelet are active
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - containerd
+    - kubelet
+
+- name: Get join command from primary control plane
+  set_fact:
+    worker_join_cmd: "{{ hostvars[groups['control_plane'][0]]['cp_join_command'].stdout }}"
+  run_once: true
+
+- name: Join worker node to cluster
+  command: "{{ worker_join_cmd }}"
+  args:
+    creates: /etc/kubernetes/kubelet.conf
+
+- name: Copy homelab CA to worker node
+  copy:
+    src: MyLabRootCA.crt
+    dest: /usr/local/share/ca-certificates/MyLabRootCA.crt
+    owner: root
+    group: root
+    mode: '0644'
+  register: registry_cert
+
+- name: Update ca certificates
+  command: update-ca-certificates
+  when: registry_cert.changed
+
+- name: Restart containerd
+  systemd:
+    name: containerd
+    state: restarted

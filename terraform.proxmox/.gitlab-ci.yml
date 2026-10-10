@@ -1,0 +1,247 @@
+default:
+  image:
+    name: ghcr.io/opentofu/opentofu:latest
+    pull_policy: if-not-present
+    entrypoint: [""]
+
+stages:
+  - security_scan
+  - test
+  - plan
+  - apply
+  - destroy
+
+include:
+  # Terraform / IaC security scanning
+  - template: Jobs/SAST-IaC.gitlab-ci.yml
+
+  # Application source-code SAST
+  # - template: Jobs/SAST.gitlab-ci.yml
+
+variables:
+  # GitLab authentication
+  TF_HTTP_USERNAME: "gitlab-ci-token"
+  TF_HTTP_PASSWORD: "$CI_JOB_TOKEN"
+
+.vm-backend: &vm-backend
+  TF_HTTP_ADDRESS: "https://git.lab/api/v4/projects/$CI_PROJECT_ID/terraform/state/proxmox-vm"
+  TF_HTTP_LOCK_ADDRESS: "https://git.lab/api/v4/projects/$CI_PROJECT_ID/terraform/state/proxmox-vm/lock"
+  TF_HTTP_UNLOCK_ADDRESS: "https://git.lab/api/v4/projects/$CI_PROJECT_ID/terraform/state/proxmox-vm/lock"
+  TF_HTTP_LOCK_METHOD: "POST"
+  TF_HTTP_UNLOCK_METHOD: "DELETE"
+
+.lxc-backend: &lxc-backend
+  TF_HTTP_ADDRESS: "https://git.lab/api/v4/projects/$CI_PROJECT_ID/terraform/state/proxmox-lxc"
+  TF_HTTP_LOCK_ADDRESS: "https://git.lab/api/v4/projects/$CI_PROJECT_ID/terraform/state/proxmox-lxc/lock"
+  TF_HTTP_UNLOCK_ADDRESS: "https://git.lab/api/v4/projects/$CI_PROJECT_ID/terraform/state/proxmox-lxc/lock"
+  TF_HTTP_LOCK_METHOD: "POST"
+  TF_HTTP_UNLOCK_METHOD: "DELETE"
+
+kics-iac-sast:
+  extends: iac-sast
+  stage: security_scan
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  rules:
+    - when: always
+
+# ============================================================
+# VM
+# ============================================================
+
+test-vm:
+  stage: test
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  before_script:
+    - cd terraform/vm
+    - tofu --version
+  script:
+    - tofu init -backend=false
+    - tofu fmt -check -recursive
+    - tofu validate
+  rules:
+    - changes:
+        - terraform/vm/**
+        
+plan-vm:
+  stage: plan
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  variables:
+    <<: *vm-backend
+  before_script:
+    - cd terraform/vm
+    - tofu --version
+  script:
+    - tofu init -reconfigure
+    - >
+      tofu plan
+      -var="proxmox_api_url=$PM_API_URL"
+      -var="proxmox_api_token_id=$PM_API_TOKEN_ID"
+      -var="proxmox_api_token_secret=$PM_API_TOKEN_SECRET"
+      -out=tfplan
+  artifacts:
+    paths:
+      - terraform/vm/tfplan
+    expire_in: 1 day
+  needs:
+    - test-vm
+  rules:
+    - changes:
+        - terraform/vm/**
+
+apply-vm:
+  stage: apply
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  variables:
+    <<: *vm-backend
+  before_script:
+    - cd terraform/vm
+    - tofu --version
+  script:
+    - tofu init -reconfigure
+    - tofu apply -auto-approve tfplan
+  needs:
+    - job: plan-vm
+      artifacts: true
+  when: manual
+  allow_failure: false
+  rules:
+    - changes:
+        - terraform/vm/**
+
+destroy-vm:
+  stage: destroy
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  variables:
+    <<: *vm-backend
+  before_script:
+    - cd terraform/vm
+    - tofu --version
+  script:
+    - tofu init -reconfigure
+    - >
+      tofu destroy -auto-approve 
+      -var="proxmox_api_url=$PM_API_URL"
+      -var="proxmox_api_token_id=$PM_API_TOKEN_ID"
+      -var="proxmox_api_token_secret=$PM_API_TOKEN_SECRET"
+  needs:
+    - job: test-vm
+  when: manual
+  allow_failure: false
+  rules:
+    - changes:
+        - terraform/vm/**
+
+# ============================================================
+# LXC Container
+# ============================================================
+
+test-lxc:
+  stage: test
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  before_script:
+    - cd terraform/lxc
+    - tofu --version
+  script:
+    - tofu init -backend=false
+    - tofu fmt -check -recursive
+    - tofu validate
+  rules:
+    - changes:
+        - terraform/lxc/**
+
+plan-lxc:
+  stage: plan
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  variables:
+    <<: *lxc-backend
+  before_script:
+    - cd terraform/lxc
+    - tofu --version
+  script:
+    - tofu init -reconfigure
+    - >
+      tofu plan
+      -var="proxmox_api_url=$PM_API_URL"
+      -var="proxmox_api_token_id=$PM_API_TOKEN_ID"
+      -var="proxmox_api_token_secret=$PM_API_TOKEN_SECRET"
+      -var="ssh_public_key=$SSH_PUBLIC_KEY"
+      -out=tfplan
+  artifacts:
+    paths:
+      - terraform/lxc/tfplan
+    expire_in: 1 day
+  needs:
+    - test-lxc
+  rules:
+    - changes:
+        - terraform/lxc/**
+
+apply-lxc:
+  stage: apply
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  variables:
+    <<: *lxc-backend
+  before_script:
+    - cd terraform/lxc
+    - tofu --version
+  script:
+    - tofu init -reconfigure
+    - tofu apply -auto-approve tfplan
+  needs:
+    - job: plan-lxc
+      artifacts: true
+  when: manual
+  allow_failure: false
+  rules:
+    - changes:
+        - terraform/lxc/**
+
+destroy-lxc:
+  stage: destroy
+  tags:
+    - opentofu
+    - proxmox
+    - docker
+  variables:
+    <<: *lxc-backend
+  before_script:
+    - cd terraform/lxc
+    - tofu --version
+  script:
+    - tofu init -reconfigure
+    - >
+      tofu destroy -auto-approve 
+      -var="proxmox_api_url=$PM_API_URL"
+      -var="proxmox_api_token_id=$PM_API_TOKEN_ID"
+      -var="proxmox_api_token_secret=$PM_API_TOKEN_SECRET"
+  needs:
+    - job: test-lxc
+  when: manual
+  allow_failure: false
+  rules:
+    - changes:
+        - terraform/lxc/**
