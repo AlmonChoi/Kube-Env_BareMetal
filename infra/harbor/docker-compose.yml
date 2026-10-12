@@ -112,7 +112,7 @@ services:
       - ./config/jobservice/config.yml:/etc/jobservice/config.yml:ro
 
   redis:
-    image: docker.io/bitnami/redis:7.0
+    image: docker.io/soldevelo/redis:7.0
     container_name: harbor-redis
     networks: 
       - backend
