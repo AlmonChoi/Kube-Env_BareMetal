@@ -69,6 +69,11 @@
   tasks:
     - name: Add Cilium Helm repository
       shell: helm repo add cilium https://helm.cilium.io/ && helm repo update
+    - name: Install Cilium CRDs
+      shell: |
+        curl -fsSL https://github.com/cilium/cilium/archive/refs/tags/v1.20.2.tar.gz \
+          | tar -xzO --wildcards '*/pkg/k8s/apis/cilium.io/client/crds/v2/*.yaml' \
+          | kubectl apply -f -
     - name: Install Cilium via Helm from Jumphost with Custom Options
       shell: |
         helm upgrade --install cilium cilium/cilium \
@@ -86,6 +91,16 @@
           --set encryption.type="wireguard" \
           --set bgpControlPlane.enabled=true \
           --set bgp.announce.loadbalancerIP=true
+    - name: Install Cilium support yaml 
+      shell: kubectl apply -f ../files/platform.yml
+
+- name: Install external DNS
+  hosts: jumphost
+  tags:
+    - setup_externalDNS
+  tasks:
+    - name: Run externalDNS.yml file
+      shell: kubectl apply -f ../files/externalDNS.yml
 
 - name: Ingress-nginx Installation
   hosts: jumphost
